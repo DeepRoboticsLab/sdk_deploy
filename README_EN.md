@@ -89,7 +89,7 @@ python3 src/M20_sdk_deploy/interface/robot/simulation/mujoco_simulation_ros2.py
 
 ### Control (Terminal 2)
 
-**Note!**：
+<span style="color: red;">**Note:**</span>
 > - Right click simulator window and select "always on top"
 > - When the robot dog stands up, it may become stuck due to self-collision in the simulation. This is not a bug; please try again.
 > - z： default position
