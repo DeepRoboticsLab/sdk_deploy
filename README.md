@@ -92,13 +92,13 @@ python3 src/M20_sdk_deploy/interface/robot/simulation/mujoco_simulation_ros2.py
 ```
 
 ### 操控(终端2)
-
-tips：可以将仿真器窗口设为始终位于最上层，方便可视化
-# 注意：当机器狗站起来时，有可能在仿真中会自碰撞卡住，这不是bug，请再尝试一次即可
-- z： 机器狗站立进入默认状态
-- c： 机器狗站立进入rl控制状态
-- wasd：前后左右
-- qe：顺逆时针旋转
+**注意**:
+> - 可以将仿真器窗口设为始终位于最上层，方便可视化
+> - 当机器狗站起来时，有可能在仿真中会自碰撞卡住，这不是bug，请再尝试一次即可
+> - z： 机器狗站立进入默认状态
+> - c： 机器狗站立进入rl控制状态
+> - wasd：前后左右
+> - qe：顺逆时针旋转
 
 ## 仿真-实际
 此过程和仿真-仿真几乎一模一样，只需要添加连wifi传输数据步骤，然后修改编译指令即可。目前默认实机操控为keyboard键盘模式，后续我们将会添加手柄控制模式，敬请期待。
@@ -140,58 +140,3 @@ ros2 service call /SDK_MODE drdds/srv/StdSrvInt32 command:\ 0
 - qe：顺逆时针旋转
 ```
 
-ros2 topic list
-/BATTERY_DATA
-/IMU_DATA
-/JOINTS_CMD
-/JOINTS_DATA
-/parameter_events
-/rosout
-
-
-ros2 node info /mujoco_simulation 
-/mujoco_simulation
-  Subscribers:
-    /JOINTS_CMD: drdds/msg/JointsDataCmd
-  Publishers:
-    /IMU_DATA: drdds/msg/ImuData
-    /JOINTS_DATA: drdds/msg/JointsData
-    /parameter_events: rcl_interfaces/msg/ParameterEvent
-    /rosout: rcl_interfaces/msg/Log
-  Service Servers:
-    /mujoco_simulation/describe_parameters: rcl_interfaces/srv/DescribeParameters
-    /mujoco_simulation/get_parameter_types: rcl_interfaces/srv/GetParameterTypes
-    /mujoco_simulation/get_parameters: rcl_interfaces/srv/GetParameters
-    /mujoco_simulation/list_parameters: rcl_interfaces/srv/ListParameters
-    /mujoco_simulation/set_parameters: rcl_interfaces/srv/SetParameters
-    /mujoco_simulation/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically
-  Service Clients:
-
-  Action Servers:
-
-  Action Clients:
-
-
-ros2 node info /rl_deploy 
-/rl_deploy
-  Subscribers:
-    /BATTERY_DATA: drdds/msg/BatteryData
-    /IMU_DATA: drdds/msg/ImuData
-    /JOINTS_DATA: drdds/msg/JointsData
-    /parameter_events: rcl_interfaces/msg/ParameterEvent
-  Publishers:
-    /JOINTS_CMD: drdds/msg/JointsDataCmd
-    /parameter_events: rcl_interfaces/msg/ParameterEvent
-    /rosout: rcl_interfaces/msg/Log
-  Service Servers:
-    /rl_deploy/describe_parameters: rcl_interfaces/srv/DescribeParameters
-    /rl_deploy/get_parameter_types: rcl_interfaces/srv/GetParameterTypes
-    /rl_deploy/get_parameters: rcl_interfaces/srv/GetParameters
-    /rl_deploy/list_parameters: rcl_interfaces/srv/ListParameters
-    /rl_deploy/set_parameters: rcl_interfaces/srv/SetParameters
-    /rl_deploy/set_parameters_atomically: rcl_interfaces/srv/SetParametersAtomically
-  Service Clients:
-
-  Action Servers:
-
-  Action Clients:
