@@ -75,7 +75,6 @@ public:
                         
                         if(input=='z'){
                             usr_cmd_->target_mode = uint8_t(RobotMotionState::StandingUp);
-                            std::cout << static_cast<int>(usr_cmd_->target_mode) << " test test test ";
                         }
                     break;
                     case RobotMotionState::StandingUp:
