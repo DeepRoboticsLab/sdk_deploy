@@ -93,7 +93,7 @@ python3 src/M20_sdk_deploy/interface/robot/simulation/mujoco_simulation_ros2.py
 ```
 
 ### 操控(终端2)
-**注意**:
+<span style="color: red;">**注意:**</span>
 > - 可以将仿真器窗口设为始终位于最上层，方便可视化
 > - 当机器狗站起来时，有可能在仿真中会自碰撞卡住，这不是bug，请再尝试一次即可
 > - z： 机器狗站立进入默认状态
