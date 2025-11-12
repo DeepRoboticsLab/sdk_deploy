@@ -103,7 +103,7 @@ private:
             last_imu_ts_ = current_imu_ts_;
             imu_check_time_ = current_time_;
         }
-        if (current_time_ - imu_check_time_ > 0.01) {
+        if (current_time_ - imu_check_time_ > 0.2) {
             std::cout << "========== imu lag warning ========>> "
                       << current_time_ - imu_check_time_ << std::endl;
         }

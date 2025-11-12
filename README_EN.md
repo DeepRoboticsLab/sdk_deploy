@@ -84,6 +84,7 @@ source install/setup.bash
 ros2 run rl_deploy rl_deploy
 
 # Terminal 2 
+source install/setup.bash
 python3 src/M20_sdk_deploy/interface/robot/simulation/mujoco_simulation_ros2.py
 ```
 
