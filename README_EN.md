@@ -1,6 +1,7 @@
 [简体中文](./README.md)
 
 [![Discord](https://img.shields.io/badge/-Discord-5865F2?style=flat&logo=Discord&logoColor=white)](https://discord.gg/gdM9mQutC8)
+This repository uses ROS2 to implement the entire Sim-to-sim and Sim-to-real workflow. Therefore, ROS2 must first be installed on your computer, such as installing [ROS2 Humble](https://docs.ros.org/en/humble/index.html) on Ubuntu 22.04.
 ```mermaid
 graph LR
     A["/rl_deploy"] -->|/JOINTS_CMD| B["/mujoco_simulation"]
