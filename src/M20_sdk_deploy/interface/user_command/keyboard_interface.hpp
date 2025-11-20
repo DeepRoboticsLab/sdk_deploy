@@ -81,8 +81,8 @@ private:
         
         if (held_keys_.count('w')) fwd += max_forward_;
         if (held_keys_.count('s')) fwd -= max_forward_;
-        if (held_keys_.count('a')) side -= max_side_;
-        if (held_keys_.count('d')) side += max_side_;
+        if (held_keys_.count('a')) side += max_side_;
+        if (held_keys_.count('d')) side -= max_side_;
         if (held_keys_.count('q')) yaw += max_yaw_;
         if (held_keys_.count('e')) yaw -= max_yaw_;
         
