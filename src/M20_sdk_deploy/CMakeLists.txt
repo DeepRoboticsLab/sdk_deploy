@@ -66,16 +66,29 @@ ament_target_dependencies(rl_deploy
   rclcpp
   drdds
 )
+if(BUILD_PLATFORM STREQUAL "arm")
+  target_link_libraries(rl_deploy
+    interface
+    onnxruntime
+    -lpthread
+    -lm
+    -lrt
+    -ldl
+    -lstdc++
+  )
+else()
+  target_link_libraries(rl_deploy
+    interface
+    onnxruntime
+    -lpthread
+    -lm
+    -lrt
+    -ldl
+    -lstdc++
+    -levdev
+  )
+endif()
 
-target_link_libraries(rl_deploy
-  interface
-  onnxruntime
-  -lpthread
-  -lm
-  -lrt
-  -ldl
-  -lstdc++
-)
 
 install(TARGETS rl_deploy
   DESTINATION lib/${PROJECT_NAME}
