@@ -154,11 +154,11 @@ private:
             } else {
                 joint_data_same_cnt_[i] = 0;
             }
-            if (joint_data_same_cnt_[i] > 200) {
-                robot_error_state_.joint_num_error = 1;
-                joint_update_state_ |= (1 << i);
-                res = false;
-            }
+            // if (joint_data_same_cnt_[i] > 200) {
+            //     robot_error_state_.joint_num_error = 1;
+            //     joint_update_state_ |= (1 << i);
+            //     res = false;
+            // }
         }
         last_joint_pos_ = joint_pos;
         last_joint_vel_ = joint_vel;
