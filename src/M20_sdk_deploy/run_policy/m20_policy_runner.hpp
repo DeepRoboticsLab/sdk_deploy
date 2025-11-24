@@ -117,10 +117,10 @@ public:
         
         robot2policy_idx = generate_permutation(robot_order, policy_order);
         policy2robot_idx = generate_permutation(policy_order, robot_order);
-        for (int i = 0; i < action_dim; ++i){
-            std::cout << "robot2policy_idx[" << i << "]: " << robot2policy_idx[i] << std::endl;
-            std::cout << "policy2robot_idx[" << i << "]: " << policy2robot_idx[i] << std::endl;
-        }
+        // for (int i = 0; i < action_dim; ++i){
+        //     std::cout << "robot2policy_idx[" << i << "]: " << robot2policy_idx[i] << std::endl;
+        //     std::cout << "policy2robot_idx[" << i << "]: " << policy2robot_idx[i] << std::endl;
+        // }
 
         robot_action.kp = kp_;
         robot_action.kd = kd_;
