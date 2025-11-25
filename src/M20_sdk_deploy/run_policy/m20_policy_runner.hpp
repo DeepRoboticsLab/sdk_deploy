@@ -101,7 +101,7 @@ public:
                                    0.0, -0.6,  1.0, 0.0,
                                    0.0,  0.6, -1.0, 0.0,
                                    0.0,  0.6, -1.0, 0.0;
-        SetDecimation(4);
+        SetDecimation(5);
         session_options_.SetIntraOpNumThreads(4);
         session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_EXTENDED);
         

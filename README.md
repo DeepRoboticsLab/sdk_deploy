@@ -131,8 +131,7 @@ colcon build --packages-select rl_deploy --cmake-args -DBUILD_PLATFORM=arm
 sudo su # Root
 source /opt/ros/foxy/setup.bash #source ROS2 env
 source /opt/robot/scripts/setup_ros2.sh
-ros2 service call /SDK_MODE drdds/srv/StdSrvInt32 command:\ 200 # /200 is /JOINTS_DATA topic frequency, recommended below 500 Hz
-
+ros2 service call /SDK_MODE drdds/srv/StdSrvInt32 command:\ 200 # 200 是 /JOINTS_DATA 话题的发布频率，建议设置在 500 Hz 以下。该数值只能是 1000 的因数。例如，如果你将频率设置为 200 Hz，则需要将 decimation 参数改为 1000/200 = 5。
 # Run
 source install/setup.bash
 ros2 run rl_deploy rl_deploy
