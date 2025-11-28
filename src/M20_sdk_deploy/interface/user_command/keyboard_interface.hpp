@@ -117,7 +117,7 @@ private:
                   << "  Movement:  W/S (forward/back)  A/D (left/right)\n"
                   << "  Rotation:  Q (CCW)  E (CW)\n"
                   << "  Mode:      R (damping)  Z (stand)  C (control)\n"
-                  << "\n"
+                  << "\n";
 
         char ch;
 
