@@ -4,7 +4,7 @@
 
 ## 总览
 
-本仓库使用ROS2来实现Sim-to-sim和Sim-to-real全流程，故需在电脑上先安装好ROS2，如在Ubuntu22.04上安装[ROS2 Humble](https://docs.ros.org/en/humble/index.html)[视频教学]。我们还公布了[教学视频](https://www.bilibili.com/video/BV17S2VBJEN2)，欢迎大家观看。
+本仓库使用ROS2来实现Sim-to-sim和Sim-to-real全流程，故需在电脑上先安装好ROS2，如在Ubuntu22.04上安装[ROS2 Humble](https://docs.ros.org/en/humble/index.html)。我们还公布了[教学视频](https://www.bilibili.com/video/BV17S2VBJEN2)，欢迎大家观看。
 ```mermaid
 graph LR
     A["/rl_deploy"] -->|/JOINTS_CMD| B["/mujoco_simulation"]
