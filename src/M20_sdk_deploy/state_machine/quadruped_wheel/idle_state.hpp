@@ -21,8 +21,8 @@ namespace qw {
         bool first_enter_flag_ = true;
         VecXf joint_pos_, joint_vel_, joint_tau_;
         Vec3f rpy_, acc_, omg_;
-        float enter_state_time_ = 10000.;
-        float last_print_time = 0;
+        double enter_state_time_ = 10000.;
+        double last_print_time = 0;
 
         void GetProprioceptiveData() {
             joint_pos_ = ri_ptr_->GetJointPosition();

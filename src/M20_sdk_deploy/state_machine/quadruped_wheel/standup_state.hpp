@@ -16,10 +16,10 @@ namespace qw{
 class StandUpState : public StateBase{
 private:
     VecXf init_joint_pos_, init_joint_vel_, current_joint_pos_, current_joint_vel_;
-    float time_stamp_record_, run_time_;
+    double time_stamp_record_, run_time_;
     VecXf goal_joint_pos_, kp_, kd_;
     MatXf joint_cmd_;
-    float stand_duration_ = 2.;
+    double stand_duration_ = 2.;
 
     const float init_hipx_pos_ = Deg2Rad(0.);
     const float set_wheel_kd_ = 1.;
