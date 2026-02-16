@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>lite3_sdk_deploy</name>
+  <version>1.3.0</version>
+  <description>RL deploy</description>
+  <maintainer email="haokaidai.zju@gmail.com">Haokai Dai</maintainer>
+  <license>BSD 3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>drdds</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd"
+            schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>lite3_transfer</name>
+  <version>0.0.1</version>
+  <description>ROS2 UDP bridge for Lite3 using Lite3_MotionSDK and drdds messages.</description>
+
+  <maintainer email="haokaidai.zju@gmail.com">Haokai Dai</maintainer>
+  <license>BSD 3-Clause</license>
+
+  <!-- 构建工具 -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 运行 & 编译依赖 -->
+  <depend>rclcpp</depend>
+  <depend>drdds</depend>
+
+  <!-- 如果后续还会加 msg/srv，可以保留 rosidl 相关 -->
+  <!--
+  <depend>rosidl_default_generators</depend>
+  <depend>rosidl_default_runtime</depend>
+  -->
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
