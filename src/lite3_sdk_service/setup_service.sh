@@ -40,6 +40,16 @@ log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 log_step()  { echo -e "\n${BOLD}${BLUE}==> $*${NC}"; }
 log_done()  { echo -e "${GREEN}[DONE]${NC}  $*"; }
 
+# Source a file with nounset disabled. ROS2 / colcon setup scripts reference
+# unbound variables (e.g. AMENT_TRACE_SETUP_FILES), which would abort under
+# `set -u`. Wrapping the source keeps the rest of the script strict.
+source_env() {
+    set +u
+    # shellcheck disable=SC1090
+    source "$1"
+    set -u
+}
+
 show_help() {
     cat <<EOF
 Usage: $(basename "$0") [options]
@@ -131,12 +141,41 @@ step1_check_env() {
     log_done "Environment check passed."
 }
 
+# ===== Detect foreign workspaces sourced in the environment =====
+# Any path in AMENT_PREFIX_PATH that is neither the ROS2 install nor this
+# workspace's install is a foreign overlay (e.g. an old workspace sourced from
+# ~/.bashrc). It can shadow our packages at build and run time, so warn loudly.
+check_foreign_workspaces() {
+    local ros_prefix="/opt/ros/${ROS_DISTRO}"
+    local found=0
+
+    IFS=':' read -ra _prefixes <<< "${AMENT_PREFIX_PATH:-}"
+    for prefix in "${_prefixes[@]}"; do
+        [ -z "${prefix}" ] && continue
+        case "${prefix}" in
+            "${ros_prefix}"|"${INSTALL_DIR}"|"${INSTALL_DIR}"/*) continue ;;
+        esac
+        if [ "${found}" -eq 0 ]; then
+            log_warn "Foreign ROS2 workspace(s) detected in AMENT_PREFIX_PATH:"
+            found=1
+        fi
+        log_warn "  - ${prefix}"
+    done
+
+    if [ "${found}" -eq 1 ]; then
+        log_warn "These overlays can shadow this workspace's packages (e.g. drdds)"
+        log_warn "at build and runtime. If they are obsolete, remove the matching"
+        log_warn "'source .../install/setup.bash' line from ~/.bashrc and re-run."
+    fi
+}
+
 # ===== Step 2: build =====
 step2_build() {
     log_step "Step 2/3: Build (colcon build --packages-up-to ${SERVICE_NAME})"
 
     cd "${WS_DIR}"
-    source "${ROS_SETUP}"
+    check_foreign_workspaces
+    source_env "${ROS_SETUP}"
 
     log_info "Removing previous build artifacts (build / install / log)..."
     rm -rf build install log
@@ -146,6 +185,7 @@ step2_build() {
 
     colcon build \
         --packages-up-to "${SERVICE_NAME}" \
+        --allow-overriding drdds lite3_transfer lite3_sdk_service \
         --cmake-args -DCMAKE_BUILD_TYPE=Release
 
     echo "--------------------------------------------------------------"
