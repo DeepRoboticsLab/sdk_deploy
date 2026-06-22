@@ -84,6 +84,8 @@ Everyone is welcome to contribute to this repo. If you discover a bug or optimiz
 
 ## Sim-to-sim
 ```bash
+sudo apt-get update
+sudo apt-get install libevdev-dev
 pip install "numpy < 2.0" mujoco
 git clone https://github.com/DeepRoboticsLab/sdk_deploy.git
 
