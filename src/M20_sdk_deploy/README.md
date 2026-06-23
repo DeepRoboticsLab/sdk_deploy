@@ -118,14 +118,20 @@ This process is almost identical to simulation-simulation. You only need to add 
 # computer and gamepad should both connect to WiFi
 # WiFi: M20********
 # Passward: 12345678 (If wrong, contact technical support)
+# Note: If you are connected via the second WiFi, use 10.21.41.1 instead of 10.21.31.103
+#       for ssh/scp below. It is the same robot, only the IP differs per WiFi network.
 
 # scp to transfer files to quadruped (open a terminal on your local computer) password is ' (a single quote)
-scp -r ~/sdk_deploy/src user@10.21.31.103:~/sdk_deploy
+# Note: drdds is already installed on the robot under /opt/ros/foxy, so we only copy M20_sdk_deploy.
+ssh user@10.21.31.103 'mkdir -p ~/M20_sdk_deploy/src'
+scp -r ~/sdk_deploy/src/M20_sdk_deploy user@10.21.31.103:~/M20_sdk_deploy/src
 
 # ssh connect for remote development, 
 ssh user@10.21.31.103
-cd sdk_deploy
+cd M20_sdk_deploy
 source /opt/ros/foxy/setup.bash #source ROS2 env
+# Build only m20_sdk_deploy. Do NOT rebuild drdds on the robot —
+# the version under /opt/ros/foxy is the one the robot's services use.
 colcon build --packages-select m20_sdk_deploy --cmake-args -DBUILD_PLATFORM=arm
 
 
