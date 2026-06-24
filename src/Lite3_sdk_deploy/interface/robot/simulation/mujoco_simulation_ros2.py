@@ -201,6 +201,9 @@ class MuJoCoSimulationNode(Node):
         # q_world = self.data.sensordata[:4]  # quaternion
         q_world = self.data.qpos[3:7]
         rpy = self.quaternion_to_euler(q_world)
+        # Publish RPY in degrees to match the consumer in dds_interface.hpp
+        # (HandlerIMU applies Deg2Rad on incoming roll/pitch/yaw).
+        rpy_deg = np.degrees(rpy)
         # body_acc = self.data.sensordata[4:7]
         body_acc = self.data.sensordata[16:19]
         angvel_b = self.data.qvel[3:6]  # body frame
@@ -215,9 +218,9 @@ class MuJoCoSimulationNode(Node):
         stamp.nanosec = nanosec
         imu_msg.header.stamp = stamp
         imu_msg.data = ImuDataValue()
-        imu_msg.data.roll = float(rpy[0])
-        imu_msg.data.pitch = float(rpy[1])
-        imu_msg.data.yaw = float(rpy[2])
+        imu_msg.data.roll = float(rpy_deg[0])
+        imu_msg.data.pitch = float(rpy_deg[1])
+        imu_msg.data.yaw = float(rpy_deg[2])
         imu_msg.data.omega_x = float(angvel_b[0])
         imu_msg.data.omega_y = float(angvel_b[1])
         imu_msg.data.omega_z = float(angvel_b[2])
