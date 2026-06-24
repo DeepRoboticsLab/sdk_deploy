@@ -268,9 +268,7 @@ public:
     }
 
     virtual Vec3f GetImuRpy() {
-        // Publish RPY in degrees to match the consumer in dds_interface.hpp
-        // (HandlerIMU applies Deg2Rad on incoming roll/pitch/yaw).
-        rpy_ << robot_data_->imu.angle_roll, robot_data_->imu.angle_pitch, robot_data_->imu.angle_yaw;
+        rpy_ << robot_data_->imu.angle_roll/180.*M_PI, robot_data_->imu.angle_pitch/180.*M_PI, robot_data_->imu.angle_yaw/180.*M_PI;
         return rpy_;
     }
 
