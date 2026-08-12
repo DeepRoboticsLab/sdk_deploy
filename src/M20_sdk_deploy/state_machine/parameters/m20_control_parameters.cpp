@@ -13,6 +13,6 @@ void ControlParameters::GenerateM20Parameters(){
 
     fl_joint_lower_ << -0.4363, -2.443, -2.758;
     fl_joint_upper_ << 0.6109, 2.443, 2.758;
-    joint_vel_limit_ << 45, 22.4, 22.4;
-    torque_limit_ << 32.4, 76.4, 76.4;
+    joint_vel_limit_ << 22.4, 22.4, 22.4;
+    torque_limit_ << 76.4, 76.4, 76.4;
 }
