@@ -116,7 +116,7 @@ This process is almost identical to simulation-simulation. You only need to add 
 ```bash
 
 # computer and gamepad should both connect to WiFi
-# WiFi: M20********
+# WiFi: CA9B********
 # Passward: 12345678 (If wrong, contact technical support)
 # Note: If you are connected via the second WiFi, use 10.21.41.1 instead of 10.21.31.103
 #       for ssh/scp below. It is the same robot, only the IP differs per WiFi network.

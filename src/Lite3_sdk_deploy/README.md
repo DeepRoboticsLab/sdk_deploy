@@ -136,7 +136,7 @@ You can download the structure parts mentioned in the video which is used to mou
 ### SSH connection
 ```bash
 # computer and gamepad should both connect to WiFi
-# WiFi: lite3********
+# WiFi: YSC-JYML-xxxxxx
 # Passward: 12345678 (If wrong, contact technical support)
 
 # ssh connect for remote development

@@ -83,7 +83,7 @@ All configurations must be performed on the motion host.
 
 ```bash
 # computer and gamepad should both connect to WiFi
-# WiFi: lite3********
+# WiFi: YSC-JYML-xxxxxx
 # Passward: 12345678 (If wrong, contact technical support)
 
 # ssh connect for remote development
