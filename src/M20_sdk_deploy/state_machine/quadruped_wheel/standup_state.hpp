@@ -108,7 +108,7 @@ public:
             }
             
         }else{
-            float new_time = run_time_ - time_stamp_record_ - stand_duration_;
+            double new_time = run_time_ - time_stamp_record_ - stand_duration_;
             float dt = 0.001;
             float plan_height = GetCubicSplinePos(cp_ptr_->pre_height_, 0, cp_ptr_->stand_height_, 0, 
                                                 new_time, stand_duration_);

@@ -16,7 +16,7 @@ namespace qw{
 class LieDownState : public StateBase{
 private:
     VecXf init_joint_pos_, init_joint_vel_, current_joint_pos_, current_joint_vel_;
-    float time_stamp_record_, run_time_;
+    double time_stamp_record_, run_time_;
     VecXf goal_joint_pos_, kp_, kd_;
     MatXf joint_cmd_;
     float liedown_duration_ = 2.;

@@ -15,7 +15,7 @@
 namespace qw{
 class JointDampingState : public StateBase{
 private:
-    float time_record_, run_time_;
+    double time_record_, run_time_;
     MatXf joint_cmd_;
 public:
     JointDampingState(const RobotName& robot_name, const std::string& state_name, 
@@ -53,4 +53,3 @@ public:
 
 
 };
-
