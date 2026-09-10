@@ -16,6 +16,7 @@
 #include "quadruped/standup_state.hpp"
 #include "quadruped/joint_damping_state.hpp"
 #include "quadruped/rl_control_state.hpp"
+#include "quadruped/liedown_state.hpp"
 #include "keyboard_interface.hpp"
 #include "retroid_gamepad_interface.hpp"
 #include "hardware/lite3_interface.hpp"
@@ -29,6 +30,7 @@ private:
     std::shared_ptr<StateBase> standup_controller_;
     std::shared_ptr<StateBase> rl_controller_;
     std::shared_ptr<StateBase> joint_damping_controller_;
+    std::shared_ptr<StateBase> liedown_controller_;
     std::shared_ptr<JointsDataShadowSubscriber> joints_data_shadow_subscriber_;
     // std::shared_ptr<StateBase> car_move_controller_;
 
@@ -79,6 +81,7 @@ public:
         standup_controller_ = std::make_shared<StandUpState>(robot_name_, "standup_state", data_ptr);
         rl_controller_ = std::make_shared<RLControlState>(robot_name_, "rl_control", data_ptr);
         joint_damping_controller_ = std::make_shared<JointDampingState>(robot_name_, "joint_damping", data_ptr);
+        liedown_controller_ = std::make_shared<LieDownState>(robot_name_, "liedown_state", data_ptr);
 
         current_controller_ = idle_controller_;
         current_state_name_ = kIdle;
@@ -110,6 +113,9 @@ public:
             }
             case StateName::kJointDamping:{
                 return joint_damping_controller_;
+            }
+            case StateName::kLieDown:{
+                return liedown_controller_;
             }
             default:{
                 std::cerr << "error state name" << std::endl;

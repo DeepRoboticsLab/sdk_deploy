@@ -98,13 +98,19 @@ private:
             usr_cmd_->target_mode = uint8_t(RobotMotionState::JointDamping);
             std::cout << "[MODE] Joint Damping\n";
         }
-        else if (keycode == KEY_Z && msfb_->GetCurrentState() == RobotMotionState::WaitingForStand) {
+        else if (keycode == KEY_Z && (msfb_->GetCurrentState() == RobotMotionState::WaitingForStand
+            || msfb_->GetCurrentState() == RobotMotionState::LieDown)) {
             usr_cmd_->target_mode = uint8_t(RobotMotionState::StandingUp);
             std::cout << "[MODE] Standing Up\n";
         }
         else if (keycode == KEY_C && msfb_->GetCurrentState() == RobotMotionState::StandingUp) {
             usr_cmd_->target_mode = uint8_t(RobotMotionState::RLControlMode);
             std::cout << "[MODE] RL Control\n";
+        }
+        else if (keycode == KEY_X && (msfb_->GetCurrentState() == RobotMotionState::StandingUp
+            || msfb_->GetCurrentState() == RobotMotionState::RLControlMode)) {
+            usr_cmd_->target_mode = uint8_t(RobotMotionState::LieDown);
+            std::cout << "[MODE] Lie Down\n";
         }
     }
 
@@ -170,7 +176,7 @@ private:
                   << "╚════════════════════════════════════════════════╝\n"
                   << "  Hold W/S/A/D/Q/E → velocity ramps up\n"
                   << "  Release key      → instant stop on that axis\n"
-                  << "  Modes: R (damping)  Z (stand)  C (RL control)\n\n";
+                  << "  Modes: R (damping)  Z (stand)  C (RL control)  X (lie down)\n\n";
 
         struct input_event ev;
 
@@ -210,7 +216,7 @@ private:
 
                     // Mode keys (only on real press)
                     if (ev.value == 1) {
-                        if (ev.code == KEY_R || ev.code == KEY_Z || ev.code == KEY_C) {
+                        if (ev.code == KEY_R || ev.code == KEY_Z || ev.code == KEY_C || ev.code == KEY_X) {
                             process_mode_key(ev.code);
                         }
                         if (ev.code == KEY_ESC) {

@@ -132,6 +132,8 @@ namespace q {
 
         virtual StateName GetNextStateName() {
             if (uc_ptr_->GetUserCommand()->safe_control_mode != 0) return StateName::kJointDamping;
+            if (uc_ptr_->GetUserCommand()->target_mode == uint8_t(RobotMotionState::LieDown))
+                return StateName::kLieDown;
             return StateName::kRLControl;
         }
     };

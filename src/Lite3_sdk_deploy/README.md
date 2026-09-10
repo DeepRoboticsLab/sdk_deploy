@@ -106,13 +106,15 @@ source install/setup.bash
 python3 src/Lite3_sdk_deploy/interface/robot/simulation/mujoco_simulation_ros2.py
 ```
 
-### Control (Terminal 2)
+### Control (Terminal 1)
 
 <span style="color: red;">**Note:**</span>
 > - Right click simulator window and select "always on top"
 > - When the robot dog stands up, it may become stuck due to self-collision in the simulation. This is not a bug; please try again.
-> - z： default position
+> - z： default position / stand up from lie down
 > - c： rl control default position
+> - x： lie down
+> - r： joint damping
 > - wasd：forward/leftward/backward/rightward
 > - qe：clockwise/counter clockwise
 
@@ -166,14 +168,18 @@ source install/setup.bash
 ros2 run lite3_sdk_deploy rl_deploy
 ```
 <span style="color: red;">**keyboard control:**</span>
-> - z： default position
+> - z： default position / stand up from lie down
 > - c： rl control default position
+> - x： lie down
+> - r： joint damping
 > - wasd：forward/leftward/backward/rightward
 > - qe：clockwise/counter clockwise
 
 <span style="color: red;">**gamepad control:**</span>
-> - Y： default position
+> - Y： default position / stand up from lie down
 > - A： rl control default position
+> - X： lie down
+> - Press both joystick buttons：joint damping
 > - Left joystick：forward/leftward/backward/rightward
 > - Right joystick：clockwise/counter clockwise
 

@@ -66,9 +66,13 @@ public:
     float stand_duration_ = 1.5;
 
     /**
+     * @brief lie down duration
+     */
+    float liedown_duration_ = 2.0;
+
+    /**
      * @brief policy path
      */
     std::string common_policy_path_;
     Vec3f common_policy_p_gain_, common_policy_d_gain_;
 };
-

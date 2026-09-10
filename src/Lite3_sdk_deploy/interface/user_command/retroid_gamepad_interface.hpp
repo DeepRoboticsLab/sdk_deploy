@@ -93,6 +93,8 @@ private:
             bool Y_last = (last_buttons_ & BIT_Y) != 0;
             bool A_pressed = (msg->buttons & BIT_A) != 0;
             bool A_last = (last_buttons_ & BIT_A) != 0;
+            bool X_pressed = (msg->buttons & BIT_X) != 0;
+            bool X_last = (last_buttons_ & BIT_X) != 0;
             bool left_axis_button = (msg->buttons & BIT_LEFT_AXIS_BUTTON) != 0;
             bool right_axis_button = (msg->buttons & BIT_RIGHT_AXIS_BUTTON) != 0;
             bool left_axis_button_last = (last_buttons_ & BIT_LEFT_AXIS_BUTTON) != 0;
@@ -111,6 +113,21 @@ private:
                         if (A_pressed && !A_last) {
                             usr_cmd_->target_mode = uint8_t(RobotMotionState::RLControlMode);
                             RCLCPP_INFO(node_->get_logger(), "Mode: RL Control");
+                        } else if (X_pressed && !X_last) {
+                            usr_cmd_->target_mode = uint8_t(RobotMotionState::LieDown);
+                            RCLCPP_INFO(node_->get_logger(), "Mode: Lie Down");
+                        }
+                        break;
+                    case RobotMotionState::RLControlMode:
+                        if (X_pressed && !X_last) {
+                            usr_cmd_->target_mode = uint8_t(RobotMotionState::LieDown);
+                            RCLCPP_INFO(node_->get_logger(), "Mode: Lie Down");
+                        }
+                        break;
+                    case RobotMotionState::LieDown:
+                        if (Y_pressed && !Y_last) {
+                            usr_cmd_->target_mode = uint8_t(RobotMotionState::StandingUp);
+                            RCLCPP_INFO(node_->get_logger(), "Mode: Standing Up");
                         }
                         break;
                     default:
