@@ -102,6 +102,7 @@ class MuJoCoSimulationNode(Node):
         self.viewer = None
         if USE_VIEWER:
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            self._configure_viewer_camera()
 
     def _set_initial_pose(self, key: str):
         """关节位置设置为与 PyBullet 脚本一致的初始角度"""
@@ -111,6 +112,13 @@ class MuJoCoSimulationNode(Node):
         qpos0[3:7] = np.array([1, 0, 0, 0])
         self.data.qpos[:] = qpos0
         mujoco.mj_forward(self.model, self.data)
+
+    def _configure_viewer_camera(self):
+        self.viewer.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+        self.viewer.cam.lookat[:] = np.array([0.4, 0.0, 0.45])
+        self.viewer.cam.distance = 2.4
+        self.viewer.cam.azimuth = 135.0
+        self.viewer.cam.elevation = -25.0
 
     def _cmd_callback(self, msg: JointsDataCmd):
         """Convert received (published) positions/velocities to internal (raw)"""

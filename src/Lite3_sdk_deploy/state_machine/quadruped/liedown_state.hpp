@@ -1,28 +1,27 @@
 /**
- * @file standup_state.hpp
- * @brief from sit state to stand state
- * @author Haokai Dai
+ * @file liedown_state.hpp
+ * @brief from stand state to lie down state
+ * @author DeepRobotics
  * @version 1.0
- * @date 2025-12-25
- * 
+ * @date 2026-02-12
+ *
  * @copyright Copyright (c) 2025  DeepRobotics
- * 
+ *
  */
 #pragma once
 
 #include "state_base.h"
 
 namespace q{
-class StandUpState : public StateBase{
+class LieDownState : public StateBase{
 private:
     VecXf init_joint_pos_, init_joint_vel_, current_joint_pos_, current_joint_vel_;
     double time_stamp_record_, run_time_;
     VecXf goal_joint_pos_, kp_, kd_;
     MatXf joint_cmd_;
-    double stand_duration_ = 2.;
+    float liedown_duration_ = 2.;
 
     const float init_hipx_pos_ = Deg2Rad(0.);
-    // const float set_wheel_kd_ = 1.;
 
     void GetRobotJointValue(){
         current_joint_pos_ = ri_ptr_->GetJointPosition();
@@ -45,6 +44,7 @@ private:
         b = (3*xf - vf*T - 2*v0*T - 3*x0) / pow(T, 2);
         return a*pow(t, 3)+b*pow(t, 2)+c*t+d;
     }
+
     float GetCubicSplineVel(float x0, float v0, float xf, float vf, float t, float T){
         if(t >= T) return 0;
         float a, b, c;
@@ -57,7 +57,6 @@ private:
     float GetHipYPosByHeight(float h){
         float l1 = cp_ptr_->thigh_len_;
         float l2 = cp_ptr_->shank_len_;
-        float default_pos = (cp_ptr_->fl_joint_lower_(1)+cp_ptr_->fl_joint_upper_(1)) / 2.;
         if(fabs(h) >= l1 + l2) {
             std::cerr << "error height input" << std::endl;
             return 0;
@@ -70,7 +69,6 @@ private:
     float GetKneePosByHeight(float h){
         float l1 = cp_ptr_->thigh_len_;
         float l2 = cp_ptr_->shank_len_;
-        float default_pos = (cp_ptr_->fl_joint_lower_(2)+cp_ptr_->fl_joint_upper_(2)) / 2.;
         if(fabs(h) >= l1 + l2) {
             std::cerr << "error height input" << std::endl;
             return 0;
@@ -81,9 +79,9 @@ private:
     }
 
 public:
-    StandUpState(const RobotName& robot_name, const std::string& state_name, 
+    LieDownState(const RobotName& robot_name, const std::string& state_name,
         std::shared_ptr<ControllerData> data_ptr):StateBase(robot_name, state_name, data_ptr){
-            goal_joint_pos_ = Vec3f(init_hipx_pos_, GetHipYPosByHeight(cp_ptr_->pre_height_), GetKneePosByHeight(cp_ptr_->pre_height_)).replicate(4, 1);
+            goal_joint_pos_ = Vec3f(init_hipx_pos_, GetHipYPosByHeight(0.03), GetKneePosByHeight(0.03)).replicate(4, 1);
 
             Vec3f one_leg_kp, one_leg_kd;
             one_leg_kp << cp_ptr_->swing_leg_kp_;
@@ -93,69 +91,64 @@ public:
             joint_cmd_ = MatXf::Zero(12, 5);
             joint_cmd_.col(0) = kp_;
             joint_cmd_.col(2) = kd_;
-            stand_duration_ = cp_ptr_->stand_duration_;
+            liedown_duration_ = cp_ptr_->liedown_duration_;
         }
-    ~StandUpState(){}
+    ~LieDownState(){}
 
     virtual void OnEnter() {
         GetRobotJointValue();
         RecordJointData();
-        StateBase::msfb_.UpdateCurrentState(RobotMotionState::StandingUp);
+        StateBase::msfb_.UpdateCurrentState(RobotMotionState::LieDown);
         uc_ptr_->SetMotionStateFeedback(&StateBase::msfb_);
     };
+
     virtual void OnExit() {
     }
+
     virtual void Run() {
         GetRobotJointValue();
         VecXf planning_joint_pos(current_joint_pos_.rows());
         VecXf planning_joint_vel(current_joint_pos_.rows());
-        if(run_time_ - time_stamp_record_ <= stand_duration_){
+        if(run_time_ - time_stamp_record_ <= liedown_duration_){
             for(int i=0;i<current_joint_pos_.rows();++i){
-                planning_joint_pos(i) = GetCubicSplinePos(init_joint_pos_(i), init_joint_vel_(i), goal_joint_pos_(i), 0, 
-                                                run_time_ - time_stamp_record_, stand_duration_);
-                planning_joint_vel(i) = GetCubicSplineVel(init_joint_pos_(i), init_joint_vel_(i), goal_joint_pos_(i), 0, 
-                                                run_time_ - time_stamp_record_, stand_duration_);
-                // if(i%4==3){
-                //     kd_(i) = 0;
-                // }
+                planning_joint_pos(i) = GetCubicSplinePos(init_joint_pos_(i), init_joint_vel_(i), goal_joint_pos_(i), 0,
+                                                run_time_ - time_stamp_record_, liedown_duration_);
+                planning_joint_vel(i) = GetCubicSplineVel(init_joint_pos_(i), init_joint_vel_(i), goal_joint_pos_(i), 0,
+                                                run_time_ - time_stamp_record_, liedown_duration_);
             }
-            
-        }else{
-            double new_time = run_time_ - time_stamp_record_ - stand_duration_;
-            float dt = 0.001;
-            float plan_height = GetCubicSplinePos(cp_ptr_->pre_height_, 0, cp_ptr_->stand_height_, 0, 
-                                                new_time, stand_duration_);
-            float plan_height_next = GetCubicSplinePos(cp_ptr_->pre_height_, 0, cp_ptr_->stand_height_, 0, 
-                                                new_time+dt, stand_duration_);
-            float hipy_pos = GetHipYPosByHeight(plan_height);
-            float hipy_vel = (GetHipYPosByHeight(plan_height_next) - hipy_pos) / dt;
-            float knee_pos = GetKneePosByHeight(plan_height);
-            float knee_vel = (GetKneePosByHeight(plan_height_next) - knee_pos) / dt;
-            planning_joint_pos = Vec3f(init_hipx_pos_, hipy_pos, knee_pos).replicate(4, 1);
-            planning_joint_vel = Vec3f(0, hipy_vel, knee_vel).replicate(4, 1);
-        }
 
-        joint_cmd_.col(1) = planning_joint_pos;
-        joint_cmd_.col(3) = planning_joint_vel;
-        // joint_cmd_.col(2) = kd_;
-        ri_ptr_->SetJointCommand(joint_cmd_);
+            joint_cmd_.col(0) = kp_;
+            joint_cmd_.col(1) = planning_joint_pos;
+            joint_cmd_.col(2) = kd_;
+            joint_cmd_.col(3) = planning_joint_vel;
+            joint_cmd_.col(4).setZero();
+            ri_ptr_->SetJointCommand(joint_cmd_);
+        } else if (run_time_ - time_stamp_record_ <=  2.0 * liedown_duration_){
+            joint_cmd_ = MatXf::Zero(12, 5);
+            joint_cmd_.col(2) = kd_;
+            ri_ptr_->SetJointCommand(joint_cmd_);
+        } else {
+            joint_cmd_ = MatXf::Zero(12, 5);
+            ri_ptr_->SetJointCommand(joint_cmd_);
+        }
     }
     virtual bool LoseControlJudge() {
-        if(uc_ptr_->GetUserCommand()->target_mode == uint8_t(RobotMotionState::JointDamping)) return true;
+        if (uc_ptr_->GetUserCommand()->target_mode == uint8_t(RobotMotionState::JointDamping)) return true;
         return false;
     }
     virtual StateName GetNextStateName() {
-        if(uc_ptr_->GetUserCommand()->safe_control_mode!=0) return StateName::kJointDamping;
-        if(run_time_ - time_stamp_record_ <= 2.*stand_duration_){
-            return StateName::kStandUp;
+        if(uc_ptr_->GetUserCommand()->safe_control_mode!=0){
+            return StateName::kJointDamping;
+        }
+
+        if(run_time_ - time_stamp_record_ <= 2.*liedown_duration_){
+            return StateName::kLieDown;
         }else{
-            if(uc_ptr_->GetUserCommand()->target_mode == uint8_t(RobotMotionState::RLControlMode)){
-                return StateName::kRLControl;
-            }else if(uc_ptr_->GetUserCommand()->target_mode == uint8_t(RobotMotionState::LieDown)){
-                return StateName::kLieDown;
+            if(uc_ptr_->GetUserCommand()->target_mode == uint8_t(RobotMotionState::StandingUp)){
+                return StateName::kStandUp;
             }
         }
-        return StateName::kStandUp;
+        return StateName::kLieDown;
     }
 };
 
