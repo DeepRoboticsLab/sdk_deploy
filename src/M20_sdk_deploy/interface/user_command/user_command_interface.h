@@ -55,6 +55,9 @@ public:
         msfb_ = msfb;
     }
 
+    virtual void SetSafetyMode(uint8_t mode) { usr_cmd_->safe_control_mode = mode; }
+    virtual void SetTargetMode(uint8_t mode) { usr_cmd_->target_mode = mode; }
+
     MotionStateFeedback *msfb_;
     RobotName robot_name_;
     UserCommand *usr_cmd_;

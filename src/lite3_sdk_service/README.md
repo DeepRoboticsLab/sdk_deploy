@@ -82,15 +82,12 @@ This deployment flow is intended for the Lite3 robot host. It requires Wi-Fi/net
 All configurations must be performed on the motion host.
 
 ```bash
-# computer and gamepad should both connect to WiFi
-# WiFi: YSC-JYML-xxxxxx
-# Passward: 12345678 (If wrong, contact technical support)
-
-# ssh connect for remote development
-#Username	Password
-#ysc		' (a single quote)
-ssh ysc@192.168.2.1
-# enter your passward, the terminal will be active on the Lite3 computer
+# Connect the computer and gamepad to your robot's Wi-Fi.
+# Replace these placeholders with your robot's connection details.
+ROBOT_USER=your_robot_user
+ROBOT_HOST=your_robot_address
+ssh "${ROBOT_USER}@${ROBOT_HOST}"
+# Authenticate using the credentials configured on your robot.
 ```
 
 ### Network configuration
@@ -193,8 +190,9 @@ estop
 ### Upload source packages
 
 ```bash
-ssh ysc@192.168.2.1 "mkdir -p ~/sdk_service/src"
-scp -r ~/sdk_deploy/src/drdds ~/sdk_deploy/src/lite3_transfer ~/sdk_deploy/src/lite3_sdk_service ysc@192.168.2.1:~/sdk_service/src
+# On the development computer, set ROBOT_USER and ROBOT_HOST as above.
+ssh "${ROBOT_USER}@${ROBOT_HOST}" "mkdir -p ~/sdk_service/src"
+scp -r ~/sdk_deploy/src/drdds ~/sdk_deploy/src/lite3_transfer ~/sdk_deploy/src/lite3_sdk_service "${ROBOT_USER}@${ROBOT_HOST}:~/sdk_service/src"
 ```
 
 ### Run the deployment script
@@ -247,7 +245,7 @@ ros2 run lite3_sdk_service sdk_service
 sudo vim /etc/systemd/system/lite3_sdk_service.service
 ```
 
-Example:
+Example (replace `your_robot_user` and its home directory with your robot account):
 
 ```ini
 [Unit]
@@ -256,10 +254,10 @@ After=network.target
 
 [Service]
 Type=simple
-User=ysc
+User=your_robot_user
 Environment=ROS_DOMAIN_ID=0
 ExecStart=/bin/bash -lc 'source /opt/ros/foxy/setup.bash && \
-                         source /home/ysc/sdk_service/install/setup.bash && \
+                         source /home/your_robot_user/sdk_service/install/setup.bash && \
                          exec ros2 run lite3_sdk_service sdk_service'
 Restart=on-failure
 
@@ -302,6 +300,34 @@ Check:
 sudo systemctl status lite3_sdk_service
 sudo journalctl -u lite3_sdk_service -n 50
 ```
+
+### Service repeatedly exits with `std::bad_alloc`
+
+Check `sudo journalctl -u lite3_sdk_service -n 50`. A crash while decoding
+`rmw_dds_common` discovery messages can be caused by incompatible ROS 2 nodes
+sharing the network and domain; rebuilding the SDK packages does not remove
+that traffic. Stop the incompatible participants or separate their DDS domains
+from the robot. The standard onboard service uses domain `0`; a clean shell
+also defaults to `0`, so no manual `ROS_DOMAIN_ID` export is required.
+
+If the incompatible traffic comes from the external Wi-Fi network, disconnect
+`wlan0` while keeping the robot hotspot (`p2p0`) available for SSH and the gamepad:
+
+```bash
+sudo nmcli device disconnect wlan0
+sudo systemctl restart lite3_sdk_service
+```
+
+To prevent reconnection after reboot, disable autoconnect for each external
+Wi-Fi profile with `sudo nmcli connection modify "<external Wi-Fi profile>" connection.autoconnect no`.
+Keep autoconnect enabled for the robot hotspot. This avoids custom DDS profiles
+and preserves the default ROS domain and normal cross-host communication on
+the robot hotspot.
+
+`systemctl is-enabled lite3_sdk_service` confirms boot configuration only.
+Also check `systemctl status lite3_sdk_service` for a stable running process,
+not `activating (auto-restart)`. Enable SDK mode after the service is stable,
+then verify that `lite3_transfer` stays running and publishes joint/IMU data.
 
 ### Transfer node does not start
 

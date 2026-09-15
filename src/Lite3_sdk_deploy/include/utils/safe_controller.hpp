@@ -73,7 +73,6 @@ private:
     double last_cmd_ts_, cmd_check_time_;
     bool cmd_check_flag_ = true;
 
-    types::UserCommand *usr_cmd_;
     bool start_thread_flag_ = false;
 
     double driver_error_ts_;
@@ -315,7 +314,6 @@ public:
 
     void SetUserCommandDataSource(std::shared_ptr<interface::UserCommandInterface> uc) {
         uc_ptr_ = uc;
-        usr_cmd_ = uc_ptr_->GetUserCommand();
     }
 
     void Start() {
@@ -365,22 +363,22 @@ public:
             run_cnt_++;
             current_time_ = GetTimestampMs() / 1000;
             if (!IsDriverStatusNormal()) {
-                usr_cmd_->safe_control_mode = 2; 
+                uc_ptr_->SetSafetyMode(2);
                 driver_error_ts_ = current_time_;
                 std::cout << "Driver status error!" << std::endl;
             }
             if (!IsJointDataNormal()) {
-                usr_cmd_->safe_control_mode = 3;
+                uc_ptr_->SetSafetyMode(3);
                 joint_data_error_ts_ = current_time_;
                 std::cout << "Joint data error!" << std::endl;
             }
             if (run_cnt_ % 1000 == 0 && !IsMotorTempertureNormal()) {
-                usr_cmd_->safe_control_mode = 2;
+                uc_ptr_->SetSafetyMode(2);
                 std::cout << "Motor temperture error!" << std::endl;
             }
             if (!IsImuDataNormal()) {
                 std::cout << "IMU error!" << std::endl;
-                usr_cmd_->safe_control_mode = 2;
+                uc_ptr_->SetSafetyMode(2);
             }
             if (last_error_code_ != robot_error_state_.error_code) {
                 if (robot_error_state_.error_code != 0) {

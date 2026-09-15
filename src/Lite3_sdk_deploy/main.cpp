@@ -11,12 +11,11 @@
 using namespace types;
 MotionStateFeedback StateBase::msfb_ = MotionStateFeedback();
 
-int main(){
+int main(int argc, char** argv){
     std::cout << "State Machine Start Running" << std::endl;
-    rclcpp::init(0, 0);
+    rclcpp::init(argc, argv);
     std::shared_ptr<StateMachineBase> fsm = std::make_shared<q::QStateMachine>(RobotName::Lite3, 
-        RemoteCommandType::kKeyBoard); // for simulation
-                                             // for real robot, use RemoteCommandType::kRetroidGamepad
+        RemoteCommandType::kRos2); // Select kKeyBoard, kRetroidGamepad, or kRos2 here.
     fsm->Start();
     fsm->Run();
     fsm->Stop();

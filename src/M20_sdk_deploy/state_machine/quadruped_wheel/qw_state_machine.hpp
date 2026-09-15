@@ -44,24 +44,27 @@ public:
     ~QwStateMachine(){}
 
     void Start(){
+        if(robot_name_ == RobotName::M20){
+            ri_ptr_ = std::make_shared<M20Interface>("M20");
+            cp_ptr_ = std::make_shared<ControlParameters>(robot_name_);
+        }
+
+        std::string source;
         if(remote_cmd_type_ == RemoteCommandType::kKeyBoard){
+            source = "keyboard";
             uc_ptr_ = std::make_shared<KeyboardInterface>(robot_name_);
         }else if(remote_cmd_type_ == RemoteCommandType::kGamepad){
+            source = "gamepad";
             auto gp_ptr = std::make_shared<GamepadInterface>(robot_name_);
             udp_server_ = std::make_shared<UdpServer>(gp_ptr.get());
             uc_ptr_ = gp_ptr;
+        }else if(remote_cmd_type_ == RemoteCommandType::kRos2){
+            source = "ros2";
+            uc_ptr_ = std::make_shared<sdk_control::Ros2CommandInterface>(robot_name_, ri_ptr_->get_node());
         }else{
-            std::cerr << "error user command interface! " << std::endl;
-            exit(0);
+            throw std::invalid_argument("Invalid RemoteCommandType");
         }
         uc_ptr_->SetMotionStateFeedback(&StateBase::msfb_);
-
-        if(robot_name_ == RobotName::M20){
-   
-            ri_ptr_ = std::make_shared<M20Interface>("M20");
-            
-            cp_ptr_ = std::make_shared<ControlParameters>(robot_name_);
-        }
 
         std::shared_ptr<ControllerData> data_ptr = std::make_shared<ControllerData>();
         data_ptr->ri_ptr = ri_ptr_;
@@ -82,6 +85,7 @@ public:
         current_state_name_ = kIdle;
         next_state_name_ = kIdle;
 
+        ros_control_ = std::make_shared<sdk_control::Ros2ControlStatus>(ri_ptr_, uc_ptr_, source);
         ri_ptr_->Start();
         uc_ptr_->Start();
         sc_ptr_->Start();
@@ -119,6 +123,7 @@ public:
     }
 
     void Stop(){
+        current_controller_->OnExit();
         sc_ptr_->Stop();
         uc_ptr_->Stop();
         ri_ptr_->Stop();

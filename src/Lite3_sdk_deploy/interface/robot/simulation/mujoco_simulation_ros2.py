@@ -37,7 +37,7 @@ XML_PATH = CURRENT_DIR / ".." / ".." / ".." / "Lite3_description" / "lite3_mjcf"
 XML_PATH = str(XML_PATH.resolve())
 
 
-USE_VIEWER = True
+USE_VIEWER = os.environ.get("SDK_SIM_HEADLESS", "0") != "1"
 DT = 0.001
 RENDER_INTERVAL = 50
 

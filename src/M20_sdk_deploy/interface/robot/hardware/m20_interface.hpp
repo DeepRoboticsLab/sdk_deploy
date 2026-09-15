@@ -9,31 +9,16 @@ protected:
         memset(data_updated_, 0, dof_num_ * sizeof(bool));
         this->SetJointCommand(MatXf::Zero(dof_num_, 5));
 
-        VecXf last_joint_pos = this->GetJointPosition();
-        VecXf current_joint_pos = this->GetJointPosition();
-        int cnt = 0;
-        while (!IsDataUpdatedFinished()) {
-            ++cnt;
-            usleep(1000);
-
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        while (rclcpp::ok() && (!IsDataUpdatedFinished() || !IsImuDataReady())) {
             rclcpp::spin_some(this->get_node());
-            current_joint_pos = this->GetJointPosition();
-            for (int i = 0; i < dof_num_; ++i) {
-                if (!data_updated_[i] && current_joint_pos(i) != last_joint_pos(i) &&
-                    !std::isnan(current_joint_pos(i))) {
-                    data_updated_[i] = true;
-                    std::cout << "joint " << i << " data updated at " << cnt << " cnt!" << std::endl;
-                }
-            }
-            last_joint_pos = current_joint_pos;
-
-            if (cnt > 10000) {
-                for (int i = 0; i < dof_num_; ++i) {
-                    std::cout << i << " :" << data_updated_[i] << std::endl;
-                }
-                std::cout << "joint data update is not finished\n";
-            }
+            if (std::chrono::steady_clock::now() >= deadline)
+                throw std::runtime_error("No valid joint/IMU data received within 10 seconds");
+            usleep(1000);
         }
+        if (!rclcpp::ok()) throw std::runtime_error("Robot startup interrupted");
+        VecXf current_joint_pos = this->GetJointPosition();
+
         for (int i = 1; i < dof_num_; i += 4) {
             if (current_joint_pos(i) < -140. / 180. * M_PI) {
                 pos_offset_[i] = pos_offset_[i] + 360.;
@@ -118,4 +103,3 @@ public:
     }
 
 };
-

@@ -21,6 +21,7 @@ import mujoco.viewer
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from builtin_interfaces.msg import Time
 from drdds.msg import ImuData, JointsData, JointsDataCmd, MetaType, ImuDataValue, JointsDataValue, JointData, JointDataCmd
 
@@ -35,7 +36,7 @@ XML_PATH = CURRENT_DIR / ".." / ".." / ".." / "M20_description" / "m20_mjcf" / "
 
 # Convert to absolute path as string
 XML_PATH = str(XML_PATH.resolve())
-USE_VIEWER = True
+USE_VIEWER = os.environ.get("SDK_SIM_HEADLESS", "0") != "1"
 DT = 0.001
 RENDER_INTERVAL = 50
 
@@ -90,7 +91,8 @@ class MuJoCoSimulationNode(Node):
         self.get_logger().info(f"[INFO] MuJoCo model loaded, dof = {self.dof_num}")
 
         # ROS Publishers
-        self.imu_pub = self.create_publisher(ImuData, '/IMU_DATA', 200)
+        # Match the real firmware's best-effort IMU publisher.
+        self.imu_pub = self.create_publisher(ImuData, '/IMU_DATA', qos_profile_sensor_data)
         self.joints_pub = self.create_publisher(JointsData, '/JOINTS_DATA', 200)
 
         # ROS Subscriber

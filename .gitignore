@@ -1,7 +1,37 @@
+# Generated ROS 2 / CMake output
 build/
 install/
 log/
-.vscode/
+cmake-build-*/
+compile_commands.json
 
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local test results and temporary files
+/artifacts/
+/test-results/
 tmp/
-.codex
+*.tmp
+*.log
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Local tools, environments, and machine-specific configuration
+.vscode/
+.idea/
+.codex/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+.DS_Store

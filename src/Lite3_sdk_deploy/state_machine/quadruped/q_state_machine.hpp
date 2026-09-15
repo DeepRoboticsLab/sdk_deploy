@@ -53,18 +53,23 @@ public:
         }
 
         // 创建用户命令接口
+        std::string source;
         if(remote_cmd_type_ == RemoteCommandType::kKeyBoard){
+            source = "keyboard";
             uc_ptr_ = std::make_shared<KeyboardInterface>(robot_name_);
         }else if(remote_cmd_type_ == RemoteCommandType::kRetroidGamepad){
+            source = "gamepad";
             // 使用 RobotInterface 的节点创建 RetroidGamepadInterface
             if(!ri_ptr_) {
                 std::cerr << "error: RobotInterface must be created before RetroidGamepadInterface!" << std::endl;
                 exit(1);
             }
             uc_ptr_ = std::make_shared<RetroidGamepadInterface>(robot_name_, ri_ptr_->get_node());
+        }else if(remote_cmd_type_ == RemoteCommandType::kRos2){
+            source = "ros2";
+            uc_ptr_ = std::make_shared<sdk_control::Ros2CommandInterface>(robot_name_, ri_ptr_->get_node());
         }else{
-            std::cerr << "error user command interface! " << std::endl;
-            exit(0);
+            throw std::invalid_argument("Invalid RemoteCommandType");
         }
         uc_ptr_->SetMotionStateFeedback(&StateBase::msfb_);
 
@@ -87,6 +92,7 @@ public:
         current_state_name_ = kIdle;
         next_state_name_ = kIdle;
 
+        ros_control_ = std::make_shared<sdk_control::Ros2ControlStatus>(ri_ptr_, uc_ptr_, source);
         ri_ptr_->Start();
         uc_ptr_->Start();
         sc_ptr_->Start();
@@ -126,6 +132,7 @@ public:
     }
 
     void Stop(){
+        current_controller_->OnExit();
         sc_ptr_->Stop();
         uc_ptr_->Stop();
         ri_ptr_->Stop();

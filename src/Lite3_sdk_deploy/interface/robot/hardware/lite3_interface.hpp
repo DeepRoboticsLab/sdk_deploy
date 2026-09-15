@@ -9,31 +9,14 @@ protected:
         memset(data_updated_, 0, dof_num_ * sizeof(bool));
         this->SetJointCommand(MatXf::Zero(dof_num_, 5));
 
-        VecXf last_joint_pos = this->GetJointPosition();
-        VecXf current_joint_pos = this->GetJointPosition();
-        int cnt = 0;
-        while (!IsDataUpdatedFinished()) {
-            ++cnt;
-            usleep(1000);
-
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+        while (rclcpp::ok() && (!IsDataUpdatedFinished() || !IsImuDataReady())) {
             rclcpp::spin_some(this->get_node());
-            current_joint_pos = this->GetJointPosition();
-            for (int i = 0; i < dof_num_; ++i) {
-                if (!data_updated_[i] && current_joint_pos(i) != last_joint_pos(i) &&
-                    !std::isnan(current_joint_pos(i))) {
-                    data_updated_[i] = true;
-                    std::cout << "joint " << i << " data updated at " << cnt << " cnt!" << std::endl;
-                }
-            }
-            last_joint_pos = current_joint_pos;
-
-            if (cnt > 10000) {
-                for (int i = 0; i < dof_num_; ++i) {
-                    std::cout << i << " :" << data_updated_[i] << std::endl;
-                }
-                std::cout << "joint data update is not finished\n";
-            }
+            if (std::chrono::steady_clock::now() >= deadline)
+                throw std::runtime_error("No valid joint/IMU data received within 10 seconds");
+            usleep(1000);
         }
+        if (!rclcpp::ok()) throw std::runtime_error("Robot startup interrupted");
     }
 
 public:
@@ -57,6 +40,7 @@ public:
 
 // 在 Lite3Interface 类中添加
     virtual void Handler(const drdds::msg::JointsData::SharedPtr msg) override {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         topic_trace::LogEvent(
             node_->get_logger(),
             joints_data_sub_trace_,
@@ -74,6 +58,8 @@ public:
             joint_data_id_[i] = uint16_t(run_cnt_);
         }
         ri_ts_ = rclcpp::Time(msg->header.stamp).seconds();
+        for (int i = 0; i < dof_num_; ++i)
+            data_updated_[i] = std::isfinite(joint_pos_(i)) && std::isfinite(joint_vel_(i));
     }
 
     virtual void SetJointCommand(Eigen::Matrix<float, Eigen::Dynamic, 5> input) {

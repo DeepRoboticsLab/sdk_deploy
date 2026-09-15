@@ -13,6 +13,7 @@
 
 #include "state_base.h"
 #include "safe_controller.hpp"
+#include "ros2_command_interface.hpp"
 #include "drdds/msg/std_msg_int32.hpp"
 #include "topic_trace.hpp"
 
@@ -124,6 +125,7 @@ public:
             if (set_timer.time_interrupt()) {
                 ri_ptr_->RefreshRobotData();
 
+                ros_control_->UpdateCommand(current_state_name_);
                 current_controller_->Run();
 
                 if (emergency_stop_requested_.exchange(false)) {
@@ -134,7 +136,7 @@ public:
                             current_controller_->state_name_.c_str(), run_cnt_);
                         topic_trace::LogEstopEvent(ri_ptr_->get_node()->get_logger(), "[ESTOP]", buf);
                     }
-                    uc_ptr_->GetUserCommand()->target_mode = uint8_t(RobotMotionState::JointDamping);
+                    uc_ptr_->SetTargetMode(uint8_t(RobotMotionState::JointDamping));
                     next_state_name_ = StateName::kJointDamping;
                 } else if (current_controller_->LoseControlJudge()) {
                     next_state_name_ = StateName::kJointDamping;
@@ -150,6 +152,7 @@ public:
                     current_controller_->OnEnter();
                     current_state_name_ = next_state_name_;
                 }
+                ros_control_->Publish(current_state_name_);
                 ++run_cnt_;
             }
         }
@@ -174,6 +177,7 @@ public:
     StateName current_state_name_, next_state_name_;
 
     std::thread run_thread_;
+    std::shared_ptr<sdk_control::Ros2ControlStatus> ros_control_;
 
     // 急停信号：由 lite3_transfer 进程发布 /EMERGENCY_STOP_SIGNAL 触发
     std::atomic<bool> emergency_stop_requested_{false};

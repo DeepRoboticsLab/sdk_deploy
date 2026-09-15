@@ -14,6 +14,7 @@
 
 #include "common_types.h"
 #include "robot_interface.h"
+#include <mutex>
 #include "dds_types.h"
 
 #include "drdds/msg/joints_data.hpp"
@@ -32,8 +33,9 @@ struct JointConfig {
 
 class DdsInterface : public RobotInterface{
 protected:
-    double ri_ts_, imu_ts_;
-    Vec3f omega_body_, rpy_, acc_;
+    mutable std::mutex data_mutex_;
+    double ri_ts_{0.}, imu_ts_{0.};
+    Vec3f omega_body_{Vec3f::Zero()}, rpy_{Vec3f::Zero()}, acc_{Vec3f::Zero()};
     VecXf joint_pos_, joint_vel_, joint_tau_;
     VecXf motor_temperture_, driver_temperture_;
     float *pos_offset_;
@@ -65,6 +67,11 @@ protected:
             res = res & data_updated_[i];
         }
         return res;
+    }
+
+    bool IsImuDataReady() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
+        return imu_ts_ > 0. && rpy_.allFinite() && omega_body_.allFinite() && acc_.allFinite();
     }
 
     virtual void ResetPositionOffset() {
@@ -131,7 +138,7 @@ public:
         joint_cmd_pub_ = node_->create_publisher<drdds::msg::JointsDataCmd>("/JOINTS_CMD", 10);
         joint_data_sub_ = node_->create_subscription<drdds::msg::JointsData>("/JOINTS_DATA", 10,
                                     std::bind(&DdsInterface::Handler, this,std::placeholders::_1));
-        imu_data_sub_ = node_->create_subscription<drdds::msg::ImuData>("/IMU_DATA", 10,
+        imu_data_sub_ = node_->create_subscription<drdds::msg::ImuData>("/IMU_DATA", rclcpp::SensorDataQoS(),
                                     std::bind(&DdsInterface::HandlerIMU, this, std::placeholders::_1));
         health_data_sub_ = node_->create_subscription<drdds::msg::BatteryData>("/BATTERY_DATA", 10,
                                     std::bind(&DdsInterface::HandlerHealth, this, std::placeholders::_1));
@@ -159,30 +166,37 @@ public:
     }
 
     virtual double GetInterfaceTimeStamp() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return ri_ts_;
     }
 
     virtual VecXf GetJointPosition() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return joint_pos_;
     }
 
     virtual VecXf GetJointVelocity() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return joint_vel_;
     }
 
     virtual VecXf GetJointTorque() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return joint_tau_;
     }
 
     virtual Vec3f GetImuRpy() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return rpy_;
     }
 
     virtual Vec3f GetImuAcc() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return acc_;
     }
 
     virtual Vec3f GetImuOmega() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return omega_body_;
     }
 
@@ -234,26 +248,32 @@ public:
     }
 
     virtual VecXf GetMotorTemperture() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return motor_temperture_;
     }
 
     virtual VecXf GetDriverTemperture() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return driver_temperture_;
     }
 
     virtual double GetImuTimestamp() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return imu_ts_;
     }
 
     virtual std::vector<uint16_t> GetBatteryData() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return battery_data_;
     }
 
     virtual std::vector<uint16_t> GetDriverStatusWord() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return driver_status_;
     }
 
     virtual std::vector<uint16_t> GetJointDataID() {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         return joint_data_id_;
     }
 
@@ -261,6 +281,7 @@ public:
     }
 
     virtual void Handler(const drdds::msg::JointsData::SharedPtr msg) {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         topic_trace::LogEvent(
             node_->get_logger(),
             joints_data_sub_trace_,
@@ -278,9 +299,12 @@ public:
             joint_data_id_[i] = uint16_t(run_cnt_);
         }
         ri_ts_ = rclcpp::Time(msg->header.stamp).seconds();
+        for (int i = 0; i < dof_num_; ++i)
+            data_updated_[i] = std::isfinite(joint_pos_(i)) && std::isfinite(joint_vel_(i));
     }
 
     void HandlerIMU(const drdds::msg::ImuData::SharedPtr msg) {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         rpy_ = Vec3f(Deg2Rad(msg->data.roll), Deg2Rad(msg->data.pitch), Deg2Rad(msg->data.yaw));
         acc_ << msg->data.acc_x, msg->data.acc_y, msg->data.acc_z;
         omega_body_ << msg->data.omega_x, msg->data.omega_y, msg->data.omega_z;
@@ -288,6 +312,7 @@ public:
     }
 
     void HandlerHealth(const drdds::msg::BatteryData::SharedPtr msg) {
+        std::lock_guard<std::mutex> lock(data_mutex_);
         battery_data_[0] = uint8_t(msg->data[0].battery_level);
         remain_bat = battery_data_[0] / 100;
         battery_info_[0].battery_level = msg->data[0].battery_level;

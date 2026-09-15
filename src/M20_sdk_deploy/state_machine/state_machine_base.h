@@ -13,6 +13,7 @@
 
 #include "state_base.h"
 #include "safe_controller.hpp"
+#include "ros2_command_interface.hpp"
 
 class TimeTool {
 private:
@@ -122,6 +123,7 @@ public:
             if (set_timer.time_interrupt()) {
                 ri_ptr_->RefreshRobotData();
 
+                ros_control_->UpdateCommand(current_state_name_);
                 current_controller_->Run();
 
                 if (current_controller_->LoseControlJudge()){
@@ -139,6 +141,7 @@ public:
                     current_controller_->OnEnter();
                     current_state_name_ = next_state_name_;
                 }
+                ros_control_->Publish(current_state_name_);
                 ++run_cnt_;
             }
         }
@@ -163,5 +166,6 @@ public:
     StateName current_state_name_, next_state_name_;
 
     std::thread run_thread_;
+    std::shared_ptr<sdk_control::Ros2ControlStatus> ros_control_;
 };
 

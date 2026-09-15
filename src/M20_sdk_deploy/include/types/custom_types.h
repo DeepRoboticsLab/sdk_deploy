@@ -30,7 +30,8 @@ namespace types{
 
     enum RemoteCommandType{
         kKeyBoard = 0,
-        kGamepad,
+        kGamepad = 1,
+        kRos2 = 2,
     };
     
     enum KeyCode {
