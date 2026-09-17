@@ -112,7 +112,7 @@ For Sim-to-sim tests, use only the keyboard or ROS 2 interface. Refer to [Contro
 
 ## 4. Sim-to-Real
 
-This process is almost identical to simulation-simulation. You only need to add the step of connecting to Wi-Fi to transfer data, and then modify the compilation instructions.Real-robot control supports keyboard, gamepad, and ROS 2 input. Select the desired `RemoteCommandType` in `main.cpp` and rebuild; the current selection is `kRos2`.
+This process is almost identical to simulation-simulation. You only need to add the step of connecting to Wi-Fi to transfer data, and then modify the compilation instructions.Real-robot control supports keyboard, gamepad, and ROS 2 input. Select the desired `RemoteCommandType` in `main.cpp` and rebuild; the default is `kKeyBoard`.
 
 **Please first use the OTA upgrade function in the handle settings to upgrade the hardware to version 1.1.8. We require a sdk authentication code to activate the sdk mode. Please contact our technical support team to get this unique code for each robot.**
 
@@ -153,7 +153,7 @@ ros2 run m20_sdk_deploy rl_deploy
 ## 5. Control interfaces
 
 Use the build and deployment steps above before selecting an input method; the
-current selection in `main.cpp` is `kRos2`.
+default selection in `main.cpp` is `kKeyBoard`.
 
 ### 5.1. Keyboard
 

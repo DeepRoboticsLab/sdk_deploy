@@ -129,7 +129,7 @@ For Sim-to-sim tests, use only the keyboard or ROS 2 interface. Refer to [Contro
 ## 5. Sim-to-real
 
 Before proceeding with this step, verify **the version of your Lite3 system image**. Ensure the image has **ROS 2** and the **sdk_service functionality package** installed. If the image has not been upgraded, please contact your technical support.
-The default controller input is currently `RemoteCommandType::kRos2`; see the control interfaces section below.
+The default controller input is `RemoteCommandType::kKeyBoard`; see the control interfaces section below.
 
 ![alt text](../../img/lite3_app.png)
 
@@ -233,7 +233,7 @@ and publishing `/JOINTS_DATA` and `/IMU_DATA` on the SDK's domain.
 ## 6. Control interfaces
 
 Use the build and deployment steps above before selecting an input method; the
-current selection in `main.cpp` is `kRos2`.
+default selection in `main.cpp` is `kKeyBoard`.
 
 ### 6.1. Keyboard
 
