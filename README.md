@@ -2,7 +2,7 @@
 
 ## 1. SDK Overview
 
-This repository contains the robotics control SDK, currently supporting Lite3, M20, and S10.
+This repository contains the robotics control SDK, currently supporting Lite3, M20, M20s and S10.
 
 > [!NOTE]
 > Damage caused by using SDK is not covered under warranty!
@@ -25,7 +25,13 @@ Before using the Lite3 SDK, please refer to the [Lite3 SDK Service Guide](src/li
 
 For the M20 SDK deployment process, please refer to the [M20 SDK Deployment Guide](src/M20_sdk_deploy/README.md).
 
-### 1.3. S10
+### 1.3. M20S
+
+- `src/M20S_sdk_deploy`: The source code for the M20S SDK deploy.  
+
+For the M20S SDK deployment process, please refer to the [M20S SDK Deployment Guide](src/M20S_sdk_deploy/README.md).
+
+### 1.4. S10
 
 - `src/S10_sdk_deploy`: The source code for the S10 SDK deploy.  
 
@@ -37,7 +43,7 @@ See the [Contributors](Contributors.md) page for a list of contributors.
 
 ## 3. SDK总览
 
-本仓库包含机器人控制SDK，当前支持Lite3、M20和S10平台。
+本仓库包含机器人控制SDK，当前支持Lite3、M20、M20s和S10平台。
 
 > [!NOTE]
 > 因使用 SDK 造成的设备损坏不在保修范围内！
@@ -60,7 +66,13 @@ See the [Contributors](Contributors.md) page for a list of contributors.
 
 M20 SDK部署流程请查看[M20 SDK部署说明](src/M20_sdk_deploy/README.md)。
 
-### 3.3. S10
+### 3.3. M20S
+
+- `src/M20S_sdk_deploy`：M20S SDK部署的源代码。
+
+M20S SDK部署流程请查看[M20S SDK部署说明](src/M20S_sdk_deploy/README.md)。
+
+### 3.4. S10
 
 - `src/S10_sdk_deploy`：S10 SDK部署的源代码。
 
