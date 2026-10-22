@@ -4,6 +4,8 @@
 
 ## 1. Overview
 
+Watch the M20 tutorial video on [YouTube](https://youtu.be/5VKMahWWYM4?si=eibPMX5fNgEV5S13) or [Bilibili](https://b23.tv/CSEyYvw).
+
 This repository uses ROS2 to implement the entire Sim-to-sim and Sim-to-real workflow. Therefore, ROS2 must first be installed on your computer, such as installing [ROS2 Humble](https://docs.ros.org/en/humble/index.html) on Ubuntu 22.04. We've also released an introduction [video](https://www.youtube.com/watch?v=FNaxsDBtD7A), please check it out! Please go through the whole process on a Ubuntu system.
 ```mermaid
 graph LR

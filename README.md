@@ -19,11 +19,15 @@ This repository contains the robotics control SDK, currently supporting Lite3, M
 
 Before using the Lite3 SDK, please refer to the [Lite3 SDK Service Guide](src/lite3_sdk_service/README.md). For the Lite3 SDK deployment process, please refer to the [Lite3 SDK Deployment Guide](src/Lite3_sdk_deploy/README.md).
 
+Watch the Lite3 tutorial video on [YouTube](https://youtu.be/z9SK1B06MNY?si=c1jAiJ_P75v2dclr) or [Bilibili](https://b23.tv/pU3T3F0).
+
 ### 1.2. M20
 
 - `src/M20_sdk_deploy`: The source code for the M20 SDK deploy.  
 
 For the M20 SDK deployment process, please refer to the [M20 SDK Deployment Guide](src/M20_sdk_deploy/README.md).
+
+Watch the M20 tutorial video on [YouTube](https://youtu.be/5VKMahWWYM4?si=eibPMX5fNgEV5S13) or [Bilibili](https://b23.tv/CSEyYvw).
 
 ### 1.3. M20S
 
