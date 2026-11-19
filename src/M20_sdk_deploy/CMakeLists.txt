@@ -114,6 +114,8 @@ if(BUILD_TESTING)
   # Plain executable (no ROS needed); returns nonzero on failure. Run with `colcon test`.
   add_executable(test_command_guard test/test_command_guard.cpp ${STATE_MACHINE_SRC})
   add_test(NAME test_command_guard COMMAND test_command_guard)
+  add_executable(test_policy_monitor test/test_policy_monitor.cpp)
+  add_test(NAME test_policy_monitor COMMAND test_policy_monitor)
 endif()
 
 ament_package()

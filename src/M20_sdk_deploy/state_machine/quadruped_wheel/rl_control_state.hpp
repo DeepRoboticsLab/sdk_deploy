@@ -84,7 +84,7 @@ namespace qw {
             if (robot_name_ == RobotName::M20) {
                 namespace fs = std::filesystem;
                 fs::path base = fs::path(__FILE__).parent_path();
-                auto model_path = fs::canonical(base / ".." / ".." / "policy" / "policy.onnx");
+                auto model_path = fs::canonical(base / ".." / ".." / "policy" / "m20_policy.onnx");
                 m20_policy_ = std::make_shared<M20PolicyRunner>("m20_policy", model_path.string());
             }
 
@@ -110,11 +110,28 @@ namespace qw {
             start_flag_ = false;
             run_policy_thread_.join();
             state_run_cnt_ = -1;
+            if (m20_policy_) m20_policy_->PrintActionStats();
         }
 
         virtual void Run() {
             UpdateRobotObservation();
             state_run_cnt_++;
+            HandlePolicyStop();
+        }
+
+        // The policy thread's PolicyMonitor decided to stop. Both levels go to joint
+        // damping. A soft stop is like pressing 'r': damping for 3 s, then idle, and the
+        // operator can stand up again. A hard stop sets the latched safety mode, like a
+        // CommandGuard trip, so the robot stays damped until rl_deploy is restarted.
+        void HandlePolicyStop() {
+            if (!m20_policy_) return;
+            const auto level = m20_policy_->StopLevel();
+            if (level == PolicyMonitor::kHardStop) {
+                if (uc_ptr_->GetUserCommand()->safe_control_mode == 0) uc_ptr_->SetSafetyMode(3);
+            } else if (level == PolicyMonitor::kSoftStop) {
+                if (uc_ptr_->GetUserCommand()->target_mode != uint8_t(RobotMotionState::JointDamping))
+                    uc_ptr_->SetTargetMode(uint8_t(RobotMotionState::JointDamping));
+            }
         }
 
         virtual bool LoseControlJudge() {

@@ -13,6 +13,9 @@
 #define PI 3.14159265358979323846
 
 #include "policy_runner_base.hpp"
+#include "fault_injection.hpp"
+#include "policy_monitor.hpp"
+#include <atomic>
 #include <ctime>
 #include <cmath>
 #include <utility>
@@ -82,6 +85,12 @@ private:
     
     float time_step = 0.;
     int stop_count = 1000;
+    std::atomic<PolicyMonitor::Level> stop_level_{PolicyMonitor::kOk};
+
+    // Clips raw policy outputs (before scaling) and decides when to stop the policy
+    // (policy_monitor.hpp). Training used rsl_rl clip_actions = 100 (effectively
+    // unclipped), so these bounds are ours. Limits come from SDK_ACTION_CLIP etc.
+    PolicyMonitor monitor_{PolicyMonitor::Config::FromEnv()};
 
 public:
     M20PolicyRunner(const std::string &policy_name, const std::string &policy_path) :
@@ -171,6 +180,27 @@ public:
         tmp_action_eigen.setZero(action_dim);
         motor_p_eigen.setZero(12);
         motor_v_eigen.setZero(motor_num);
+        monitor_.Reset();
+        stop_level_.store(PolicyMonitor::kOk);
+        const auto& c = monitor_.config();
+        std::printf("[M20PolicyRunner] action clip / soft stop at |raw|: hipx %.1f/%.1f hipy %.1f/%.1f "
+                    "knee %.1f/%.1f wheel %.1f/%.1f; soft stop also: %d clipped steps in a row, tilt > %.0f deg; "
+                    "hard stop: tilt > %.0f deg\n",
+                    c.clip[0], c.raw_limit[0], c.clip[1], c.raw_limit[1], c.clip[2], c.raw_limit[2],
+                    c.clip[3], c.raw_limit[3], c.clip_steps_limit, c.soft_tilt_deg, c.hard_tilt_deg);
+        std::fflush(stdout);
+    }
+
+    // Set from the policy thread, read from the FSM thread.
+    PolicyMonitor::Level StopLevel() const { return stop_level_.load(); }
+    std::string StopReason() const { return monitor_.reason(); }
+
+    void PrintActionStats() const {
+        std::printf("[M20PolicyRunner] %d policy steps, %d with clipping. Max |raw action| and clip count per policy joint:\n",
+                    monitor_.steps(), monitor_.clipped_steps());
+        for (int i = 0; i < action_dim; ++i)
+            std::printf("  %-15s %7.3f %5d\n", policy_order[i].c_str(), monitor_.raw_abs_max()(i), monitor_.clip_count()(i));
+        std::fflush(stdout);
     }
 
     VecXf Onnx_infer(VecXf current_observation){
@@ -220,7 +250,19 @@ public:
                               joint_vel_rl, 
                               last_action_eigen;
 
+        // Once stopped, never run the policy again until RL control is re-entered; hold
+        // the measured pose until the state machine switches to joint damping.
+        float tilt = PolicyMonitor::TiltDeg(projected_gravity);
+        fault::Tilt(tilt, run_cnt_, 1.f / agent_timestep);  // no-op unless SDK_FAULT_INJECTION
+        if (monitor_.level() != PolicyMonitor::kOk || monitor_.CheckPosture(tilt) != PolicyMonitor::kOk)
+            return HoldAction(ro);
+
         current_action_eigen = Onnx_infer(current_observation_);
+        fault::PolicyAction(current_action_eigen, run_cnt_, 1.f / agent_timestep);  // no-op unless SDK_FAULT_INJECTION
+
+        if (monitor_.CheckAndClip(current_action_eigen, &policy_order) != PolicyMonitor::kOk)
+            return HoldAction(ro);
+        // The policy sees its clipped action next step, as in training (rsl_rl clips before env.step).
         last_action_eigen = current_action_eigen;
 
         
@@ -238,6 +280,19 @@ public:
         
         ++run_cnt_;
         ++time_step;
+        return robot_action;
+    }
+
+    // Command for a stopped policy: legs hold where they are now, wheels stop. Only sent
+    // for the few milliseconds before the state machine leaves RL control.
+    RobotAction HoldAction(const RobotBasicState& ro) {
+        stop_level_.store(monitor_.level());
+        for (int i = 0; i < 4; ++i) {
+            robot_action.goal_joint_pos.segment(i * 4, 3) = ro.joint_pos.segment(i * 4, 3);
+            robot_action.goal_joint_pos(i * 4 + 3) = 0.f;
+            robot_action.goal_joint_vel(i * 4 + 3) = 0.f;
+        }
+        ++run_cnt_;
         return robot_action;
     }
 
