@@ -250,18 +250,18 @@ public:
                               joint_vel_rl, 
                               last_action_eigen;
 
-        // Once stopped, never run the policy again until RL control is re-entered; hold
-        // the measured pose until the state machine switches to joint damping.
+        // Once stopped, never run the policy again until RL control is re-entered; send
+        // joint damping until the state machine switches to its joint damping state.
         float tilt = PolicyMonitor::TiltDeg(projected_gravity);
         fault::Tilt(tilt, run_cnt_, 1.f / agent_timestep);  // no-op unless SDK_FAULT_INJECTION
         if (monitor_.level() != PolicyMonitor::kOk || monitor_.CheckPosture(tilt) != PolicyMonitor::kOk)
-            return HoldAction(ro);
+            return DampingAction();
 
         current_action_eigen = Onnx_infer(current_observation_);
         fault::PolicyAction(current_action_eigen, run_cnt_, 1.f / agent_timestep);  // no-op unless SDK_FAULT_INJECTION
 
         if (monitor_.CheckAndClip(current_action_eigen, &policy_order) != PolicyMonitor::kOk)
-            return HoldAction(ro);
+            return DampingAction();
         // The policy sees its clipped action next step, as in training (rsl_rl clips before env.step).
         last_action_eigen = current_action_eigen;
 
@@ -283,17 +283,20 @@ public:
         return robot_action;
     }
 
-    // Command for a stopped policy: legs hold where they are now, wheels stop. Only sent
-    // for the few milliseconds before the state machine leaves RL control.
-    RobotAction HoldAction(const RobotBasicState& ro) {
+    // Command for a stopped policy: joint damping, the same command the joint damping
+    // state sends (zero stiffness and targets; kd 4 on legs = M20 swing_leg_kd_, 1 on
+    // wheels). Only sent for the few milliseconds before the state machine leaves RL
+    // control. A separate action so robot_action keeps its gains for the next RL session.
+    RobotAction DampingAction() {
         stop_level_.store(monitor_.level());
-        for (int i = 0; i < 4; ++i) {
-            robot_action.goal_joint_pos.segment(i * 4, 3) = ro.joint_pos.segment(i * 4, 3);
-            robot_action.goal_joint_pos(i * 4 + 3) = 0.f;
-            robot_action.goal_joint_vel(i * 4 + 3) = 0.f;
-        }
+        RobotAction damp;
+        damp.kp = VecXf::Zero(motor_num);
+        damp.kd = Vec4f(4.f, 4.f, 4.f, 1.f).replicate(4, 1);
+        damp.goal_joint_pos = VecXf::Zero(motor_num);
+        damp.goal_joint_vel = VecXf::Zero(motor_num);
+        damp.tau_ff = VecXf::Zero(motor_num);
         ++run_cnt_;
-        return robot_action;
+        return damp;
     }
 
     void setDefaultJointPos(const VecXf& pos){
