@@ -33,6 +33,7 @@ private:
     std::shared_ptr<StateBase> liedown_controller_;
 
     std::shared_ptr<UdpServer> udp_server_;
+    std::shared_ptr<CommandGuard> command_guard_;
 
 public:
     const RobotName robot_name_;
@@ -45,8 +46,12 @@ public:
 
     void Start(){
         if(robot_name_ == RobotName::M20){
-            ri_ptr_ = std::make_shared<M20Interface>("M20");
+            auto m20 = std::make_shared<M20Interface>("M20");
             cp_ptr_ = std::make_shared<ControlParameters>(robot_name_);
+            // Every joint command passes through the guard (see command_guard.hpp).
+            command_guard_ = std::make_shared<CommandGuard>(CommandGuard::M20Limits(*cp_ptr_));
+            m20->SetCommandGuard(command_guard_);
+            ri_ptr_ = m20;
         }
 
         std::string source;
@@ -65,6 +70,10 @@ public:
             throw std::invalid_argument("Invalid RemoteCommandType");
         }
         uc_ptr_->SetMotionStateFeedback(&StateBase::msfb_);
+        // A guard trip also moves the state machine to joint damping (mode 3), and the
+        // safety mode latches like SafeController's.
+        auto uc = uc_ptr_;
+        command_guard_->SetTripCallback([uc](const std::string&) { uc->SetSafetyMode(3); });
 
         std::shared_ptr<ControllerData> data_ptr = std::make_shared<ControllerData>();
         data_ptr->ri_ptr = ri_ptr_;

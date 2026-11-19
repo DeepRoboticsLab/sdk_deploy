@@ -2,9 +2,12 @@
 
 #include "robot_interface.h"
 #include "dds_interface.hpp"
+#include "command_guard.hpp"
 
 class M20Interface : public DdsInterface {
 protected:
+    std::shared_ptr<CommandGuard> guard_;
+
     void ResetPositionOffset() {
         memset(data_updated_, 0, dof_num_ * sizeof(bool));
         this->SetJointCommand(MatXf::Zero(dof_num_, 5));
@@ -67,6 +70,9 @@ public:
     ~M20Interface() {
     }
 
+    // Must be set before Start(): without a guard, SetJointCommand publishes nothing.
+    void SetCommandGuard(std::shared_ptr<CommandGuard> guard) { guard_ = std::move(guard); }
+
     virtual void Start() {
         time_stamp_ = GetTimestampMs();
         ResetPositionOffset();
@@ -85,6 +91,13 @@ public:
      * Joints with index % 4 == 3 have kp forced to 0 (velocity/torque mode)
      */
     virtual void SetJointCommand(Eigen::Matrix<float, Eigen::Dynamic, 5> input) {
+        if (!guard_) {
+            static bool warned = false;
+            if (!warned) std::cerr << "[M20Interface] no CommandGuard set; refusing to send joint commands\n";
+            warned = true;
+            return;
+        }
+        guard_->Filter(input);  // clamps in place, or replaces input with damping if tripped
         auto msg = drdds::msg::JointsDataCmd();
         for (int i = 0; i < dof_num_; ++i) {
             msg.data.joints_data[i].position =

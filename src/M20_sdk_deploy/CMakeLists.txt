@@ -19,7 +19,19 @@ set(BUILD_PLATFORM "x86" CACHE STRING "Target platform (x86 or arm)")
 
 if(BUILD_PLATFORM STREQUAL "arm")
   set(CMAKE_C_COMPILER "aarch64-linux-gnu-gcc")
-  set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++") 
+  set(CMAKE_CXX_COMPILER "aarch64-linux-gnu-g++")
+endif()
+
+# Test-only fault injection (include/utils/fault_injection.hpp). On by default for x86
+# simulation builds, always off for the robot's arm build.
+if(BUILD_PLATFORM STREQUAL "arm")
+  set(SDK_FAULT_INJECTION OFF CACHE BOOL "" FORCE)
+else()
+  option(SDK_FAULT_INJECTION "Compile test-only fault injection hooks" ON)
+endif()
+if(SDK_FAULT_INJECTION)
+  add_definitions(-DSDK_FAULT_INJECTION)
+  message(STATUS "m20_sdk_deploy: fault injection hooks ENABLED (simulation build)")
 endif()
 
 # 查找依赖包
@@ -97,5 +109,11 @@ endif()
 install(TARGETS rl_deploy
   DESTINATION lib/${PROJECT_NAME}
 )
+
+if(BUILD_TESTING)
+  # Plain executable (no ROS needed); returns nonzero on failure. Run with `colcon test`.
+  add_executable(test_command_guard test/test_command_guard.cpp ${STATE_MACHINE_SRC})
+  add_test(NAME test_command_guard COMMAND test_command_guard)
+endif()
 
 ament_package()
