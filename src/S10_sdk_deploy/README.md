@@ -80,7 +80,7 @@ Right-click the simulator window and select "always on top" if it loses focus du
 
 The deployment code can run directly on the S10. Unlike sim-to-sim, real-robot deployment uses the ARM build target, requires SDK mode to be enabled from the gamepad, and does not require the MuJoCo simulation process.
 
-**Please first use the OTA upgrade function in the handle settings to upgrade the hardware to version 1.1.8. We require an SDK authentication code to activate SDK mode. Please contact our technical support team to get this unique code for each robot.**
+**Please first use the OTA upgrade function in the handle settings to upgrade the hardware to at least version 2.5.6. We require an SDK authentication code to activate SDK mode. Please contact our technical support team to get this unique code for each robot.**
 
 ### 4.1. Enable SDK Mode
 

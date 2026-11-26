@@ -91,7 +91,7 @@ For Sim-to-sim tests, use only the keyboard or ROS 2 interface. Refer to [Contro
 
 This process is almost identical to simulation-simulation. You only need to add the step of connecting to Wi-Fi to transfer data, and then modify the compilation instructions. Real-robot control supports keyboard and gamepad input. Select the desired `RemoteCommandType` in `main.cpp` and rebuild; the default is `kKeyBoard`.
 
-**Please first use the OTA upgrade function in the handle settings to upgrade the hardware to version 1.1.8. We require a SDK authentication code to activate the SDK mode. Please contact our technical support team to get this unique code for each robot.**
+**Please first use the OTA upgrade function in the handle settings to upgrade the hardware to at least version 2.5.6. We require a SDK authentication code to activate the SDK mode. Please contact our technical support team to get this unique code for each robot.**
 
 ```bash
 # computer and gamepad should both connect to WiFi
