@@ -40,11 +40,14 @@ inline float LimitNumber(float data, float low, float high){
 }
 
 inline Mat3f RpyToRm(const Vec3f &rpy){
-    Eigen::AngleAxisf yawAngle(rpy(2), Vec3f::UnitZ());
-    Eigen::AngleAxisf pitchAngle(rpy(1), Vec3f::UnitY());
-    Eigen::AngleAxisf rollAngle(rpy(0), Vec3f::UnitX());
-    Eigen::Quaternion<float> q = yawAngle*pitchAngle*rollAngle;
-    return q.matrix();
+    const float cr = std::cos(rpy(0)), sr = std::sin(rpy(0));
+    const float cp = std::cos(rpy(1)), sp = std::sin(rpy(1));
+    const float cy = std::cos(rpy(2)), sy = std::sin(rpy(2));
+    Mat3f R;
+    R(0,0) = cy * cp;  R(0,1) = cy * sp * sr - sy * cr;  R(0,2) = cy * sp * cr + sy * sr;
+    R(1,0) = sy * cp;  R(1,1) = sy * sp * sr + cy * cr;  R(1,2) = sy * sp * cr - cy * sr;
+    R(2,0) = -sp;      R(2,1) = cp * sr;                 R(2,2) = cp * cr;
+    return R;
 }
 
 inline float NormalizeAngle(float angle) {

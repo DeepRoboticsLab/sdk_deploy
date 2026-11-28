@@ -13,3 +13,4 @@ This is the official list of Deep Robotics SDK Project developers and contributo
 * [Haokai Dai](https://github.com/HaoKa1)
 * [Changshuo Chen](https://github.com/CcShuo)
 * Zhichao Feng
+* [Ziqi Fan](https://github.com/fan-ziqi)

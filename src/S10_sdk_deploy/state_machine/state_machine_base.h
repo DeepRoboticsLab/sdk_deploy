@@ -13,6 +13,7 @@
 
 #include "state_base.h"
 #include "safe_controller.hpp"
+#include "rclcpp/utilities.hpp"
 
 class TimeTool {
 private:
@@ -108,7 +109,7 @@ public:
 
     virtual void Run() {
         run_thread_ = std::thread(&StateMachineBase::RunThread, this);
-        rclcpp::spin(ri_ptr_->get_node());
+        ri_ptr_->Spin();
 
         if (run_thread_.joinable()) 
             run_thread_.join();
@@ -118,7 +119,7 @@ public:
         set_timer.time_init(5);
         startTime = set_timer.get_start_time();
 
-        while (rclcpp::ok()) {
+        while (interface::RobotInterface::Ok()) {
             if (set_timer.time_interrupt()) {
                 ri_ptr_->RefreshRobotData();
 

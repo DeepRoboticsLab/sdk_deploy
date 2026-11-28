@@ -13,7 +13,6 @@
 
 #include "common_types.h"
 #include "basic_function.hpp"
-#include "onnxruntime_cxx_api.h"
 
 using namespace types;
 

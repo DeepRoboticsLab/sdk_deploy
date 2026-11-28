@@ -16,7 +16,7 @@ protected:
             ++cnt;
             usleep(1000);
 
-            rclcpp::spin_some(this->get_node());
+            this->SpinSome();
             current_joint_pos = this->GetJointPosition();
             for (int i = 0; i < dof_num_; ++i) {
                 if (!data_updated_[i] && current_joint_pos(i) != last_joint_pos(i) &&
@@ -101,21 +101,7 @@ public:
      * Joints with index % 4 == 3 have kp forced to 0 (velocity/torque mode)
      */
     virtual void SetJointCommand(Eigen::Matrix<float, Eigen::Dynamic, 5> input) {
-        auto msg = drdds::msg::JointsDataCmd();
-        for (int i = 0; i < dof_num_; ++i) {
-            msg.data.joints_data[i].position =
-                    (input(i, 1) - joint_config_[i].offset) * joint_config_[i].dir;
-            msg.data.joints_data[i].velocity = input(i, 3) * joint_dir_[i];
-            msg.data.joints_data[i].torque = input(i, 4) * joint_dir_[i];
-            msg.data.joints_data[i].kp = input(i, 0);
-            if (i % 4 == 3) {
-                msg.data.joints_data[i].kp = 0;
-            }
-            msg.data.joints_data[i].kd = input(i, 2);
-            msg.data.joints_data[i].control_word = kIndexMotorControl;
-        }
-        joint_cmd_pub_->publish(msg);
-
+        this->PublishJointCommand(input, true);
     }
 
 };

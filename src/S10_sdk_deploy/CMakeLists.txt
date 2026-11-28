@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(s10_sdk_deploy)
+project(s10_sdk_deploy LANGUAGES CXX)
 
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
@@ -12,7 +12,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 # 警告忽略和编译选项
 add_definitions(-w)
-add_compile_options(-fPIC)
+add_compile_options(-fPIC -pipe)
 
 # 配置选项
 set(BUILD_PLATFORM "x86" CACHE STRING "Target platform (x86 or arm)")
@@ -43,9 +43,6 @@ include_directories(
   ${THIRD_PARTY}/onnxruntime/${BUILD_PLATFORM}/include
 )
 
-# 子目录
-add_subdirectory(interface)
-
 # 运行时路径设置
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,--disable-new-dtags")
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
@@ -58,8 +55,40 @@ set(CMAKE_INSTALL_RPATH
 )
 
 file(GLOB_RECURSE STATE_MACHINE_SRC "state_machine/*.c*")
+file(GLOB_RECURSE GAMEPAD_SDK_SRC "${THIRD_PARTY}/gamepad/src/*.cpp")
 
-add_executable(rl_deploy main.cpp ${STATE_MACHINE_SRC})
+add_executable(rl_deploy
+  main.cpp
+  ${STATE_MACHINE_SRC}
+  ${GAMEPAD_SDK_SRC}
+  interface/robot/hardware/dds_interface.cpp
+  interface/user_command/dds_command_interface.cpp
+  interface/user_command/gamepad_interface.cpp
+  run_policy/s10_policy_params.cpp
+)
+
+set_source_files_properties(main.cpp PROPERTIES COMPILE_OPTIONS "-O0")
+set_source_files_properties(interface/robot/hardware/dds_interface.cpp PROPERTIES COMPILE_OPTIONS "-O0")
+set_source_files_properties(interface/user_command/dds_command_interface.cpp PROPERTIES COMPILE_OPTIONS "-O0")
+set_source_files_properties(interface/user_command/gamepad_interface.cpp PROPERTIES COMPILE_OPTIONS "-O0")
+
+set_target_properties(rl_deploy PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 0)
+set_source_files_properties(
+  main.cpp
+  state_machine/parameters/s10_control_parameters.cpp
+  interface/robot/hardware/dds_interface.cpp
+  interface/user_command/dds_command_interface.cpp
+  interface/user_command/gamepad_interface.cpp
+  run_policy/s10_policy_params.cpp
+  PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+)
+
+if(NOT BUILD_PLATFORM STREQUAL "arm")
+  find_program(S10_LLD ld.lld)
+  if(S10_LLD)
+    target_link_options(rl_deploy PRIVATE -fuse-ld=lld)
+  endif()
+endif()
 
 add_library(onnxruntime SHARED IMPORTED)
 set_target_properties(onnxruntime PROPERTIES IMPORTED_LOCATION "${THIRD_PARTY}/onnxruntime//${BUILD_PLATFORM}/lib/libonnxruntime.so")
@@ -71,7 +100,6 @@ ament_target_dependencies(rl_deploy
 )
 if(BUILD_PLATFORM STREQUAL "arm")
   target_link_libraries(rl_deploy
-    interface
     onnxruntime
     -lpthread
     -lm
@@ -81,7 +109,6 @@ if(BUILD_PLATFORM STREQUAL "arm")
   )
 else()
   target_link_libraries(rl_deploy
-    interface
     onnxruntime
     -lpthread
     -lm
