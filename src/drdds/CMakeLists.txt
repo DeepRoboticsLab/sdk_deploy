@@ -12,7 +12,8 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-w -pipe)
+  # Generated IDL/typesupport marshaling code needs no heavy -O3 passes.
+  add_compile_options(-w -pipe -O1)
 endif()
 
 set(BUILD_PLATFORM "x86" CACHE STRING "Target platform (x86 or arm)")
@@ -62,8 +63,29 @@ else()
   endfunction()
 endif()
 
-file(GLOB_RECURSE MSG_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/msg" "msg/*.msg")
-list(TRANSFORM MSG_FILES PREPEND "msg/")
+# Keep leaf messages before composite messages so introspection_cpp unity builds instantiate leaves first.
+set(MSG_FILES
+  msg/BatteryDataValue.msg
+  msg/MetaType.msg
+  msg/BatteryData.msg
+  msg/GamepadData.msg
+  msg/ImuDataValue.msg
+  msg/ImuData.msg
+  msg/JointCmdValue.msg
+  msg/JointData.msg
+  msg/JointDataCmd.msg
+  msg/JointValue.msg
+  msg/JointsDataValue.msg
+  msg/JointsData.msg
+  msg/JointsDataCmdValue.msg
+  msg/JointsDataCmd.msg
+  msg/RobotStatus.msg
+  msg/StdMsgFloat32.msg
+  msg/StdMsgInt32.msg
+  msg/StdStatus.msg
+  msg/SteerValue.msg
+  msg/Steer.msg
+)
 
 file(GLOB_RECURSE SRV_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/srv" "srv/*.srv")
 list(TRANSFORM SRV_FILES PREPEND "srv/")
@@ -81,6 +103,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
     ${PROJECT_NAME}__rosidl_typesupport_fastrtps_c
     ${PROJECT_NAME}__rosidl_typesupport_fastrtps_cpp
     ${PROJECT_NAME}__rosidl_typesupport_introspection_c
+    ${PROJECT_NAME}__rosidl_typesupport_introspection_cpp
     ${PROJECT_NAME}__rosidl_typesupport_c
     ${PROJECT_NAME}__rosidl_typesupport_cpp
     ${PROJECT_NAME}__rosidl_generator_py
@@ -91,7 +114,7 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.16")
     if(TARGET ${_drdds_tgt})
       set_target_properties(${_drdds_tgt} PROPERTIES
         UNITY_BUILD ON
-        UNITY_BUILD_BATCH_SIZE 0
+        UNITY_BUILD_BATCH_SIZE 7
       )
     endif()
   endforeach()

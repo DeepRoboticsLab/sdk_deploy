@@ -1,6 +1,7 @@
 #include "control_parameters.h"
 #include "quadruped_wheel/rl_control_state.hpp"
 
+#include <Eigen/LU>
 #include <filesystem>
 #include <onnxruntime_c_api.h>
 #include <onnxruntime_cxx_api.h>

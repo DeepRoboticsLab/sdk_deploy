@@ -14,14 +14,21 @@ using namespace interface;
 #include "drdds/msg/joints_data_cmd.hpp"
 
 struct DdsInterface::RosImpl {
-    rclcpp::Publisher<drdds::msg::JointsDataCmd>::SharedPtr joint_cmd_pub;
+    rclcpp::GenericPublisher::SharedPtr joint_cmd_pub;
     rclcpp::GenericSubscription::SharedPtr joint_data_sub;
     rclcpp::GenericSubscription::SharedPtr imu_data_sub;
     rclcpp::GenericSubscription::SharedPtr health_data_sub;
 
+    rclcpp::Serialization<drdds::msg::JointsDataCmd> cmd_ser;
     rclcpp::Serialization<drdds::msg::JointsData> joints_ser;
     rclcpp::Serialization<drdds::msg::ImuData> imu_ser;
     rclcpp::Serialization<drdds::msg::BatteryData> bat_ser;
+
+    void PublishCmd(const drdds::msg::JointsDataCmd& msg) {
+        rclcpp::SerializedMessage serialized;
+        cmd_ser.serialize_message(&msg, &serialized);
+        joint_cmd_pub->publish(serialized);
+    }
 };
 
 DdsInterface::DdsInterface(const std::string& robot_name, const int& dof_num)
@@ -43,7 +50,7 @@ DdsInterface::DdsInterface(const std::string& robot_name, const int& dof_num)
     joint_data_id_.resize(dof_num_);
     battery_data_.resize(BATTERY_DATA_SIZE);
 
-    ros_->joint_cmd_pub = node_->create_publisher<drdds::msg::JointsDataCmd>("/JOINTS_CMD", 10);
+    ros_->joint_cmd_pub = node_->create_generic_publisher("/JOINTS_CMD", "drdds/msg/JointsDataCmd", 10);
 
     ros_->joint_data_sub = node_->create_generic_subscription(
         "/JOINTS_DATA", "drdds/msg/JointsData", 10,
@@ -154,7 +161,7 @@ void DdsInterface::ResetJointError() {
             msg.data.joints_data[i].control_word = control_word[j];
         }
         std::cout << "ResetJointError publish!! \n" << std::endl;
-        ros_->joint_cmd_pub->publish(msg);
+        ros_->PublishCmd(msg);
         usleep(10 * 1000);
     }
 }
@@ -173,7 +180,7 @@ void DdsInterface::PublishJointCommand(const Eigen::Matrix<float, Eigen::Dynamic
     if (!zero_kp_for_wheel) {
         std::cout << "SetJointCommand publish!! \n" << std::endl;
     }
-    ros_->joint_cmd_pub->publish(msg);
+    ros_->PublishCmd(msg);
 }
 
 void DdsInterface::SetJointCommand(Eigen::Matrix<float, Eigen::Dynamic, 5> input) {

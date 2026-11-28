@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(s10_sdk_deploy)
+project(s10_sdk_deploy LANGUAGES CXX)
 
 # 设置C++标准
 set(CMAKE_CXX_STANDARD 17)
@@ -67,7 +67,7 @@ add_executable(rl_deploy
   run_policy/s10_policy_params.cpp
 )
 
-set_source_files_properties(main.cpp PROPERTIES COMPILE_OPTIONS "-O1")
+set_source_files_properties(main.cpp PROPERTIES COMPILE_OPTIONS "-O0")
 set_source_files_properties(interface/robot/hardware/dds_interface.cpp PROPERTIES COMPILE_OPTIONS "-O0")
 set_source_files_properties(interface/user_command/dds_command_interface.cpp PROPERTIES COMPILE_OPTIONS "-O0")
 set_source_files_properties(interface/user_command/gamepad_interface.cpp PROPERTIES COMPILE_OPTIONS "-O0")

@@ -2,7 +2,6 @@
 #pragma once
 
 #include <Eigen/Core>
-#include <Eigen/Geometry>
 #include <iostream>
 #include <iomanip>
 #include <vector>
