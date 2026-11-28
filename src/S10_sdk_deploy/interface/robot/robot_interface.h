@@ -12,8 +12,12 @@
 
 #include "common_types.h"
 #include <atomic>
-#include "rclcpp/rclcpp.hpp"
+#include <memory>
 using namespace types;
+
+namespace rclcpp {
+class Node;
+}
 
 namespace interface{
 const int BATTERY_DATA_SIZE=8;
@@ -27,23 +31,21 @@ public:
      * @param  robot_name       robot name
      * @param  dof_num          The number of degrees of freedom of the robot.
      */
-    RobotInterface(const std::string& robot_name, int dof_num):robot_name_(robot_name), dof_num_(dof_num){
-        start_flag_ = true;
-        joint_cmd_ = Eigen::Matrix<float, Eigen::Dynamic, 5>::Zero(dof_num_, 5);
-        node_ = std::make_shared<rclcpp::Node>("rl_deploy");
-
-    }
-    virtual ~RobotInterface(){};
+    RobotInterface(const std::string& robot_name, int dof_num);
+    virtual ~RobotInterface();
 
     std::string robot_name_;
     const int dof_num_;
     Eigen::Matrix<float, Eigen::Dynamic, 5> joint_cmd_;
     std::atomic<bool> start_flag_;
-    rclcpp::Node::SharedPtr node_;
+    std::shared_ptr<rclcpp::Node> node_;
 
-    rclcpp::Node::SharedPtr get_node() {
+    std::shared_ptr<rclcpp::Node> get_node() {
         return node_;
     }
+    void Spin();
+    void SpinSome();
+    static bool Ok();
     /**
      * @brief Start to get robot's state and send control command
      */
